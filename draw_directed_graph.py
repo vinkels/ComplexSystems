@@ -72,7 +72,7 @@ labels = {
     19: "19",
 }
 
-nx.draw_spring(D, with_labels=labels)
+nx.draw_spring(D, with_labels=labels, color='blue')
 plt.show()
 
 
