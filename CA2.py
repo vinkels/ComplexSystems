@@ -9,8 +9,13 @@ class River:
 		self.n = n
 		self.size = size
 
+		self.starting_points = rd.sample(range(0, size - 1), n)
+
 		self.grid = np.zeros((size, size))
+
 		self.terrain = np.zeros((size, size))
+		self.water = np.zeros((size, size))
+		self.peat_bog = np.zeros((size, size))
 
 		self.river_layer = 0
 		self.river_end = 0
@@ -21,10 +26,21 @@ class River:
 		self.ca = self.initiate_n_rivers(self.size, self.grid, self.n)
 
 	def initiate_n_rivers(self, size, grid, n):
-		starting_points = rd.sample(range(0, size - 1), n)
-		grid[0, starting_points] = 1
-		self.river_end = list(zip([0] * n, starting_points))
+		"""
+		Initiate rivers
+		"""
+		grid[0, self.starting_points] = 1
+		self.river_end = list(zip([0] * n, self.starting_points))
 		return grid
+
+	def supply_water(self):
+		"""
+		add water to initial starting points
+		"""
+		pass
+
+	def remover_water(self):
+		pass
 
 	def generate_river(self):
 		self.river_layer += 1
@@ -50,7 +66,7 @@ class River:
 		On plot, the height decreases approximately 5% in 100 steps
 		"""
 		terrain = self.terrain
-		terrain[0] = np.ones(100)
+		terrain[0] = np.ones(100) * rd.uniform(0.98, 1.02)
 
 		for i in range(self.size - 1):
 			for j in range(self.size - 1):
@@ -67,33 +83,92 @@ class River:
 		self.terrain = terrain
 		return self.terrain
 
+	def water_height(self):
+		"""
+		Similar approach as above, but water height increases
+		"""
+
+		water = self.water
+		water[0] = np.ones(100) * rd.uniform(0.08, 0.12)
+
+		for i in range(self.size - 1):
+			for j in range(self.size - 1):
+				if water[i, j + 1] and water[i, j - 1]:
+					mean = (water[i, j - 1] + water[i, j] + water[i, j + 1]) / 3
+					water[i + 1, j] = mean * rd.uniform(1.001, 1.01)
+				if water[i, j + 1] and not water[i, j - 1]:
+					mean = (water[i, j] + water[i, j + 1]) / 2
+					water[i + 1, j] = mean * rd.uniform(1.001, 1.01)
+				if water[i, j - 1] and not water[i, j + 1]:
+					mean = (water[i, j] + water[i, j - 1]) / 2
+					water[i + 1, j] = mean * rd.uniform(1.001, 1.01)
+
+		self.water = water
+		return self.water
+
+	def peat_bog_height(self):
+		pass
+
+	def total_height(self):
+		total_height = np.zeros((self.size, self.size))
+
+		for i in range(self.size):
+			for j in range(self.size):
+				total_height[i, j] = self.terrain[i, j] + self.water[i, j]
+
+		return total_height
+
 	def calculate_flow(self):
-		# initialize the water distribution array
+		"""
+
+		"""
 		pass
 
 	def update_water(self):
 		"""
 
-		:return:
 		"""
 		pass
 
 	def update_peatbog(self):
+		"""
+
+		"""
 		pass
 
 	def update_terrain(self):
+		"""
+
+		"""
 		pass
 
 
+# # draft:
+# if __name__=="__main__":
+# 	rv = River(100, 1)
+# 	T = 100
+# 	for t in T:
+# 		rv.supply_water()
+# 		rv.remover_water()
+# 		rv.calculate_flow()
+# 		rv.update_water()
+#
+#
+
 if __name__ == "__main__":
-	rv = River(100, 4)
+	rv = River(100, 1)
 	for i in range(99):
 		rv.generate_river()
 
 	terrain = rv.terrain_height()
+	water = rv.water_height()
+	total_height = rv.total_height()
 
-	ax = sns.heatmap(terrain[:, 0:99])
+	fig, axes = plt.subplots(1, 3)
+	sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
+	sns.heatmap(water[:, 0:99], cmap="Blues", ax=axes[1])
+	sns.heatmap(total_height[:, 0:99], ax=axes[2])
 	plt.show()
 
-	plt.imshow(rv.grid)
-	plt.show()
+	# plt.imshow(rv.grid)
+	# plt.show()
