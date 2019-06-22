@@ -95,13 +95,13 @@ class River:
 			for j in range(self.size - 1):
 				if water[i, j + 1] and water[i, j - 1]:
 					mean = (water[i, j - 1] + water[i, j] + water[i, j + 1]) / 3
-					water[i + 1, j] = mean * rd.uniform(1.001, 1.01)
+					water[i + 1, j] = mean * rd.uniform(1.001, 1.005)
 				if water[i, j + 1] and not water[i, j - 1]:
 					mean = (water[i, j] + water[i, j + 1]) / 2
-					water[i + 1, j] = mean * rd.uniform(1.001, 1.01)
+					water[i + 1, j] = mean * rd.uniform(1.001, 1.005)
 				if water[i, j - 1] and not water[i, j + 1]:
 					mean = (water[i, j] + water[i, j - 1]) / 2
-					water[i + 1, j] = mean * rd.uniform(1.001, 1.01)
+					water[i + 1, j] = mean * rd.uniform(1.001, 1.005)
 
 		self.water = water
 		return self.water

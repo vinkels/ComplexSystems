@@ -36,7 +36,7 @@ class River:
                 print("kom ik hier")
                 # self.ca[self.river_layer, [(end[1] - 1), (end[1] + 1)]] = 1
                 new_ends += [
-                    (self.river_layer, end[1] - 1),
+	                (self.river_layer, end[1] - 1),
                     (self.river_layer, end[1] + 1),
                 ]
                 new_directs += [-1, 1]
@@ -53,7 +53,7 @@ class River:
         new_river_ends = {
             end: new_directs[i]
             for i, end in enumerate(new_ends)
-            if end[1] > 0 and end[1] < self.ca_size - 1
+            if 0 < end[1] < self.ca_size - 1
         }
         for coor in new_river_ends:
             self.ca[coor] = 1
@@ -83,9 +83,9 @@ class River:
 
 
 if __name__ == "__main__":
-    rv = River(100, 1, 0.1, 0.1)
+    rv = River(100, 1, 0.2, 0.3)
     for i in range(99):
         rv.build_directions()
     plt.imshow(rv.ca)
+    plt.show()
     # plt.savefig('testyyy.png', dpi=1000)
-	plt.show()
