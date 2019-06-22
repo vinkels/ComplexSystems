@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
 
-class river:
+
+class River:
     def __init__(self, ca_size, n):
         self.ca_size = ca_size
         self.n = n
@@ -16,7 +17,6 @@ class river:
         ca[0, river_starts] = 1
         self.river_end = list(zip([0]*n, river_starts))
         return ca
-
 
     def build_river(self):
         
@@ -35,10 +35,12 @@ class river:
         self.river_end = new_river_end
         return new_river_end
 
+
 if __name__ == "__main__":
-    rv = river(100, 4)
+    rv = River(100, 4)
     for i in range(99):
         rv.build_river()
 
     plt.imshow(rv.ca)
-    plt.savefig('testyyy.png')
+    # plt.savefig('testyyy.png')
+    plt.show()
