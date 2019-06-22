@@ -31,3 +31,8 @@ pattern over days as parameter for model simulation
     - getijden met verschillende stroomsnelheden
     - rivers that come together
 
+# VERVOLG NEW PLAN
+- verdeling voor vertakking van twee stromen
+- rivier maken
+- stroomsnelheden verdeling over vertakking
+- stopcriteria/ threshold
