@@ -131,10 +131,13 @@ class River:
 
 		"""
         river = np.zeros((self.size, self.size))
+        eliminate_from_calculation = set()
+        include_to_calculation = set()
 
         h = self.total_height()
         for i in range(self.size - 1):
             for j in range(self.size - 1):
+
                 if not h[i - 1, j]:
                     neighborhood = [
                         h[i, j - 1],
@@ -143,11 +146,15 @@ class River:
                         h[i + 1, j],
                         h[i + 1, j + 1],
                     ]
+                    print("hoi")
                     mean = sum(neighborhood) / len(neighborhood)
                     for n in neighborhood:
-                        pass
+                        if n > mean:
+                            eliminate_from_calculation.add(n)
+                        else:
+                            include_to_calculation.add(n)
 
-                if not h[i + 1, j]:
+                elif not h[i + 1, j]:
                     neighborhood = [
                         h[i, j - 1],
                         h[i, j + 1],
@@ -155,11 +162,16 @@ class River:
                         h[i - 1, j],
                         h[i - 1, j + 1],
                     ]
+                    print("hoi2")
                     mean = sum(neighborhood) / len(neighborhood)
                     for n in neighborhood:
-                        pass
+                        if n > mean:
+                            eliminate_from_calculation.add(n)
+                        else:
+                            include_to_calculation.add(n)
 
-                if not h[i, j - 1]:
+
+                elif not h[i, j - 1]:
                     neighborhood = [
                         h[i - 1, j],
                         h[i - 1, j + 1],
@@ -167,10 +179,14 @@ class River:
                         h[i + 1, j],
                         h[i + 1, j + 1],
                     ]
+                    print("hoi3")
                     for n in neighborhood:
-                        pass
+                        if n > mean:
+                            eliminate_from_calculation.add(n)
+                        else:
+                            include_to_calculation.add(n)
 
-                if not h[i, j + 1]:
+                elif not h[i, j + 1]:
                     neighborhood = [
                         h[i - 1, j],
                         h[i - 1, j - 1],
@@ -178,8 +194,12 @@ class River:
                         h[i + 1, j],
                         h[i + 1, j - 1],
                     ]
+                    print("hoi4")
                     for n in neighborhood:
-                        pass
+                        if n > mean:
+                            eliminate_from_calculation.add(n)
+                        else:
+                            include_to_calculation.add(n)
 
                 else:
                     neighborhood = [
@@ -192,11 +212,17 @@ class River:
                         h[i + 1, j],
                         h[i + 1, j + 1],
                     ]
+                    print("hoi!!!!")
                     mean = sum(neighborhood) / len(neighborhood)
                     for n in neighborhood:
-                        # if n < mean:
-	                    #     diff = mean - n
-						pass
+                        if n > mean:
+                            eliminate_from_calculation.add(n)
+                        else:
+                            include_to_calculation.add(n)
+                    for cell in include_to_calculation:
+                        #TODO Update flow with local speed of cell  plus diff of avg speed and water level of cell
+                        print(cell)
+
 
             return river
 
@@ -230,18 +256,19 @@ class River:
 
 if __name__ == "__main__":
     rv = River(100, 1)
-    for i in range(99):
-        rv.generate_river()
+    rv.calculate_flow()
+    # for i in range(99):
+    #     rv.generate_river()
 
-    terrain = rv.terrain_height()
-    water = rv.water_height()
-    total_height = rv.total_height()
+    # terrain = rv.terrain_height()
+    # water = rv.water_height()
+    # total_height = rv.total_height()
 
-    fig, axes = plt.subplots(1, 3)
-    sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
-    sns.heatmap(water[:, 0:99], cmap="Blues", ax=axes[1])
-    sns.heatmap(total_height[:, 0:99], ax=axes[2])
-    plt.show()
+    # fig, axes = plt.subplots(1, 3)
+    # sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
+    # sns.heatmap(water[:, 0:99], cmap="Blues", ax=axes[1])
+    # sns.heatmap(total_height[:, 0:99], ax=axes[2])
+    # plt.show()
 
     # plt.imshow(rv.grid)
     # plt.show()
