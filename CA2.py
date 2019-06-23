@@ -23,22 +23,21 @@ class River:
         self.p_branch = p_branch
         self.p_direct = p_direct
 
-        self.ca = self.initiate_n_rivers(self.size, self.grid, self.n)
+        self.ca = self.initiate_n_rivers(self.grid, self.n)
 
-    def initiate_n_rivers(self, size, grid, n):
+    def initiate_n_rivers(self, grid, n):
         """
-		Initiate rivers
-
-		"""
+        Initiate rivers
+        """
         grid[0, self.starting_points] = 1
         self.river_end = list(zip([0] * n, self.starting_points))
         return grid
 
     def supply_water(self):
         """
-		add water to initial starting points
+        add water to initial starting points
+        """
 
-		"""
         pass
 
     def remover_water(self):
@@ -63,11 +62,10 @@ class River:
 
     def terrain_height(self):
         """
-		According to the paper, the terrain is slightly inclined (the slope is 0.05%) and rough
+        According to the paper, the terrain is slightly inclined (the slope is 0.05%) and rough
 
-		On plot, the height decreases approximately 5% in 100 steps
-
-		"""
+        On plot, the height decreases approximately 5% in 100 steps
+        """
         terrain = self.terrain
         terrain[0] = np.ones(100) * rd.uniform(0.98, 1.02)
 
@@ -88,9 +86,8 @@ class River:
 
     def water_height(self):
         """
-		Similar approach as above, but water height increases
-
-		"""
+        Similar approach as above, but water height increases
+        """
         water = self.water
         water[0] = np.ones(100) * rd.uniform(0.08, 0.12)
 
@@ -114,9 +111,8 @@ class River:
 
     def total_height(self):
         """
-		Sum of the terrain height and water height
-
-		"""
+        Sum of the terrain height and water height
+        """
         total_height = np.zeros((self.size, self.size))
 
         for i in range(self.size):
@@ -127,9 +123,9 @@ class River:
 
     def calculate_flow(self):
         """
-		Find lower heights in Moore neighborbood to determine flow
+        Find lower heights in Moore neighborhood to determine flow
 
-		"""
+        """
         river = np.zeros((self.size, self.size))
         eliminate_from_calculation = set() # cells that are zeros
         include_to_calculation = set() # cells that are already filled wiht numbers, i.e. where water went through
@@ -169,7 +165,6 @@ class River:
                             eliminate_from_calculation.add(n)
                         else:
                             include_to_calculation.add(n)
-
 
                 elif not h[i, j - 1]:
                     neighborhood = [
@@ -223,7 +218,6 @@ class River:
                         #TODO Update flow with local speed of cell  plus diff of avg speed and water level of cell
                         print(cell)
 
-
             return river
 
     def update_water(self):
@@ -257,18 +251,18 @@ class River:
 if __name__ == "__main__":
     rv = River(100, 1)
     rv.calculate_flow()
-    # for i in range(99):
-    #     rv.generate_river()
+    for i in range(99):
+        rv.generate_river()
 
-    # terrain = rv.terrain_height()
-    # water = rv.water_height()
-    # total_height = rv.total_height()
+    terrain = rv.terrain_height()
+    water = rv.water_height()
+    total_height = rv.total_height()
 
-    # fig, axes = plt.subplots(1, 3)
-    # sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
-    # sns.heatmap(water[:, 0:99], cmap="Blues", ax=axes[1])
-    # sns.heatmap(total_height[:, 0:99], ax=axes[2])
-    # plt.show()
+    fig, axes = plt.subplots(1, 3)
+    sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
+    sns.heatmap(water[:, 0:99], cmap="Blues", ax=axes[1])
+    sns.heatmap(total_height[:, 0:99], ax=axes[2])
+    plt.show()
 
     # plt.imshow(rv.grid)
     # plt.show()
