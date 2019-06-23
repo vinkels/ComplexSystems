@@ -113,6 +113,11 @@ class River:
 	def supply_water(self):
 		"""
 		add water to initial starting points and fill up at each iteration
+
+		p.1442: "Water is supplied to the system by a single source cell."
+
+		p.906: "Water is supplied to the systems by ,,source” cells,
+		in which the amount of water is filled up in each iteration."
 		"""
 
 		pass
