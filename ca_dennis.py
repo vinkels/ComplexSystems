@@ -48,6 +48,9 @@ class River:
 		return self.terrain
 
 	def initiate_river(self):
+		"""
+		Initiate river in the middle of the grid
+		"""
 		river = np.zeros((100, 100))
 
 		for i in range(self.size):
@@ -112,7 +115,10 @@ class River:
 
 		pass
 
-	def remover_water(self):
+	def remove_water(self):
+		"""
+		remove water from the outlet
+		"""
 
 		pass
 
@@ -167,8 +173,6 @@ class River:
 		self.river_end = new_river_end
 		return new_river_end
 
-
-
 	def water_height(self):
 		"""
 		Similar approach as above, but water height increases
@@ -191,22 +195,22 @@ class River:
 		self.water = water
 		return self.water
 
+	def total_height(self):
+		"""
+		Sum of the terrain height and water height
+		"""
+		total_height = np.zeros((self.size, self.size))
+
+		for i in range(self.size):
+			for j in range(self.size):
+				total_height[i, j] = self.terrain[i, j] + self.water[i, j]
+
+		return total_height
+
 	def update_water(self):
+
 		pass
 
-
-
-# # draft:
-# if __name__=="__main__":
-# 	rv = River(100, 1)
-# 	T = 100
-# 	for t in T:
-# 		rv.supply_water()
-# 		rv.remover_water()
-# 		rv.calculate_flow()
-# 		rv.update_water()
-#
-#
 
 if __name__ == "__main__":
 	rv = River(100, 1)
