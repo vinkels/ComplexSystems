@@ -131,8 +131,8 @@ class River:
 
 		"""
         river = np.zeros((self.size, self.size))
-        eliminate_from_calculation = set()
-        include_to_calculation = set()
+        eliminate_from_calculation = set() # cells that are zeros
+        include_to_calculation = set() # cells that are already filled wiht numbers, i.e. where water went through
 
         h = self.total_height()
         for i in range(self.size - 1):
