@@ -23,6 +23,8 @@ class River:
 		self.peat_bog = np.zeros((size, size))
 		self.nutrients = np.zeros((size, size))
 
+		self.flow = 0
+
 		self.river_layer = 0
 		self.river_end = 0
 
@@ -124,7 +126,15 @@ class River:
 
 	def calculate_flow(self):
 
-		pass
+		return self.flow
+
+	def update_water(self):
+
+		for i in range(self.size):
+			for j in range(self.size):
+				self.water = self.water + self.flow
+
+		return self.water
 
 	def distribute_nutrients(self):
 
@@ -206,10 +216,6 @@ class River:
 				total_height[i, j] = self.terrain[i, j] + self.water[i, j]
 
 		return total_height
-
-	def update_water(self):
-
-		pass
 
 
 if __name__ == "__main__":
