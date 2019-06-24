@@ -5,18 +5,19 @@ import matplotlib.pyplot as plt
 
 
 class CA:
-	def __init__(self, size):
+	def __init__(self, size, mu, gamma, rho):
 		self.size = size
 		self.time_limit = size
 
 		self.starting_column = int(self.size / 2)
 
 		self.terrain = np.zeros((size, size))
+		self.peat_bog = np.zeros((size, size))
 		self.path = np.zeros((size, size))
 
-		self.mu = 0.0004          # viscosity
-		self.gamma = 0.0002       # gradient of nutrients concentration
-		self.rho = 0.02         # proportionality coefficient
+		self.mu = mu             # viscosity
+		self.gamma = gamma       # gradient of nutrients concentration
+		self.rho = rho           # proportionality coefficient
 
 	def moore_neighborhood(self, grid, i, j):
 
@@ -158,7 +159,7 @@ class CA:
 
 	def initialize_terrain(self):
 		"""
-		slope of 0.05% and random
+		slope of 0.05% and randomness, else the river will be a strait line down
 		"""
 		terrain = self.terrain
 		terrain[0] = np.ones(self.size)
@@ -173,6 +174,19 @@ class CA:
 
 		self.terrain = terrain
 		return self.terrain
+
+	def calculate_nutrient_distribution(self):
+
+		for i in range(self.size):
+			for j in range(self.size):
+				if self.water[i, j] > 0:
+					self.nutrients[i, j] = 1
+				else:
+					neighborhood = self.moore_neighborhood(self.nutrients[i, j])
+					max_value = max(neighborhood)
+					self.nutrients = self.gamma * max_value
+
+		return self.nutrients
 
 	def get_location_of_lowest_neighbor(self, grid, i, j):
 		neighborhood = self.moore_neighborhood(grid, i, j)
@@ -200,7 +214,7 @@ class CA:
 
 
 if __name__ == "__main__":
-	ca = CA(100)
+	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02)
 	terrain = ca.initialize_terrain()
 	path = ca.create_path_from_start()
 
