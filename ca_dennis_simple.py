@@ -5,6 +5,18 @@ import matplotlib.pyplot as plt
 
 
 class CA:
+	"""
+	NOTES:
+		According to Topa the complexity of the river system is measured by the number of
+		channels and bifurcations
+
+		”Anastomosing river” term refers to river system that possess extremely complex
+		network of forking and joining channels
+
+		The new channels usually merge with the others, creating a complex network composed
+		of splitting and merging water channels and small lakes
+
+	"""
 	def __init__(self, size, mu, gamma, rho):
 		self.size = size
 		self.time_limit = size
@@ -173,7 +185,7 @@ class CA:
 		for i in range(self.size):
 			for j in range(self.size):
 				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				terrain[i, j] = np.mean(neighbors) * rd.uniform(0.9995, 1.0005)
+				terrain[i, j] = np.mean(neighbors) * rd.uniform(0.999, 1.00001)
 
 		self.terrain = terrain
 		return self.terrain
@@ -200,6 +212,10 @@ class CA:
 			next_cell = self.get_location_of_lowest_neighbor(self.terrain, next_cell[0], next_cell[1])
 			self.path = self.get_path(next_cell[0], next_cell[1])
 
+		return self.path
+
+	def create_path_from_bifurcation(self):
+		""" WIP """
 		return self.path
 
 	def calculate_flow(self):
@@ -238,6 +254,7 @@ if __name__ == "__main__":
 
 	fig, axes = plt.subplots(1, 2)
 	sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
+	axes[0].set_title("Terrain with slope 5%")
 	sns.heatmap(path, cmap="Blues", ax=axes[1])
-
+	axes[1].set_title("Path of river without bifurcation")
 	plt.show()
