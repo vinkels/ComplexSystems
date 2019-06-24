@@ -174,8 +174,8 @@ class CA:
 				[i + 1, j],
 				[i + 1, j + 1],
 			]
-		print(i,j,neighborhood)
-		print('------------------------------------')
+		# print(i,j,neighborhood)
+		# print('------------------------------------')
 		return neighborhood, locations
 
 	def initialize_terrain(self):
@@ -199,14 +199,17 @@ class CA:
 	def get_location_of_lowest_neighbor(self, grid, i, j):
 		neighborhood = self.moore_neighborhood(grid, i, j)
 		neighborhood0, neighborhood1 = [], []
-		for i, val in enumerate(neighborhood[0]):
-			if val not in self.river_coors:
-				neighborhood0.append(val)
-				neighborhood1.append(neighborhood[1][i])
+		print(i,j)
+		for i, val in enumerate(neighborhood[1]):
+			print('river', neighborhood0, val, self.river_coors)
+			if tuple(val) not in self.river_coors:
+				neighborhood0.append(neighborhood[0][i])
+				neighborhood1.append(val)
 		# index waar in neighbourhood[0] de laagste waarde zit
+		
 		index_in_neighborhood_list = np.argmin(neighborhood0)
 		location = neighborhood1[index_in_neighborhood_list]
-		print(i, j, neighborhood0)
+		print(neighborhood0)
 		print(neighborhood1)
 		print(location)
 		print('+++++++++++++++++++++++++++++++++')
@@ -217,14 +220,14 @@ class CA:
 	# 	return next_cell_location
 
 	def get_path(self, i, j):
-		self.river_coors.update([i, j])
+		self.river_coors.add((i, j))
 		self.path[i, j] = 1
 		return self.path
 
 	def create_path_from_start(self):
 		next_cell = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column)
 		self.path = self.get_path(next_cell[0], next_cell[1])
-		self.river_coors.update([next_cell[0], next_cell[1]])
+		self.river_coors.add((next_cell[0], next_cell[1]))
 
 
 		for _ in range(1, self.time_limit):
@@ -267,13 +270,14 @@ class CA:
 
 
 if __name__ == "__main__":
-	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100)
-	terrain = ca.initialize_terrain()
-	path = ca.create_path_from_start()
+	for i in range(1):
+		ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100)
+		terrain = ca.initialize_terrain()
+		path = ca.create_path_from_start()
 
-	fig, axes = plt.subplots(1, 2)
-	sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
-	axes[0].set_title("Terrain with slope 5%")
-	sns.heatmap(path, cmap="Blues", ax=axes[1])
-	axes[1].set_title("Path of river without bifurcation")
-	plt.show()
+		fig, axes = plt.subplots(1, 2)
+		sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
+		axes[0].set_title("Terrain with slope 5%")
+		sns.heatmap(path, cmap="Blues", ax=axes[1])
+		axes[1].set_title("Path of river without bifurcation")
+		plt.savefig(f'plots/river_{i}.png', dpi=300)
