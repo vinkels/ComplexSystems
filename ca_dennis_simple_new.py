@@ -9,14 +9,18 @@ class CA:
 	NOTES:
 		According to Topa the complexity of the river system is measured by the number of
 		channels and bifurcations
+
 		”Anastomosing river” term refers to river system that possess extremely complex
 		network of forking and joining channels
+
 		The new channels usually merge with the others, creating a complex network composed
 		of splitting and merging water channels and small lakes
+
 	"""
-	def __init__(self, size, mu, gamma, rho):
+
+	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.999, rand_upper=1.00001):
 		self.size = size
-		self.time_limit = 10
+		self.time_limit = time_limit
 
 		# starting point in the middle of the grid
 		self.starting_column = int(self.size / 2)
@@ -30,9 +34,13 @@ class CA:
 		self.mu = mu             # viscosity
 		self.gamma = gamma       # gradient of nutrients concentration
 		self.rho = rho           # proportionality coefficient
+		self.rand_lower = rand_lower
+		self.rand_upper = rand_upper
+		self.river_coors = set()
 
 	def moore_neighborhood(self, grid, i, j):
 
+		# vind de laagste en de location waar je heen moet
 		if i == 0 and j == 0:
 			neighborhood = [
 				grid[i + 1, j + 1],
@@ -167,7 +175,6 @@ class CA:
 				[i + 1, j + 1],
 			]
 		print(neighborhood)
-		
 		return neighborhood, locations
 
 	def initialize_terrain(self):
@@ -183,28 +190,38 @@ class CA:
 		for i in range(self.size):
 			for j in range(self.size):
 				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				terrain[i, j] = np.mean(neighbors) * rd.uniform(0.999, 1.00001)
+				terrain[i, j] = np.mean(neighbors) * rd.uniform(self.rand_lower, self.rand_lower)
 
 		self.terrain = terrain
 		return self.terrain
 
 	def get_location_of_lowest_neighbor(self, grid, i, j):
 		neighborhood = self.moore_neighborhood(grid, i, j)
-		index_in_neighborhood_list = np.argmin(neighborhood[0])
-		location = neighborhood[1][index_in_neighborhood_list]
+		neighborhood0, neighborhood1 = [], []
+		for i, val in enumerate(neighborhood[0]):
+			if val not in self.river_coors:
+				neighborhood0.append(val)
+				neighborhood1.append(neighborhood[1][i])
+		# index waar in neighbourhood[0] de laagste waarde zit
+		index_in_neighborhood_list = np.argmin(neighborhood0)
+		location = neighborhood1[index_in_neighborhood_list]
+		print((neighborhood[0]))
 		return location
 
-	def get_next_cell_for_path(self, i, j):
-		next_cell_location = self.get_location_of_lowest_neighbor(self.terrain, i, j)[1]
-		return next_cell_location
+	# def get_next_cell_for_path(self, i, j):
+	# 	next_cell_location = self.get_location_of_lowest_neighbor(self.terrain, i, j)[1]
+	# 	return next_cell_location
 
 	def get_path(self, i, j):
+		self.river_coors.update((i, j))
 		self.path[i, j] = 1
 		return self.path
 
 	def create_path_from_start(self):
 		next_cell = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column)
 		self.path = self.get_path(next_cell[0], next_cell[1])
+		self.river_coors.update((next_cell[0], next_cell[1]))
+
 
 		for _ in range(1, self.time_limit):
 			next_cell = self.get_location_of_lowest_neighbor(self.terrain, next_cell[0], next_cell[1])
@@ -246,7 +263,7 @@ class CA:
 
 
 if __name__ == "__main__":
-	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02)
+	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=10)
 	terrain = ca.initialize_terrain()
 	path = ca.create_path_from_start()
 

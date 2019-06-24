@@ -36,3 +36,8 @@ pattern over days as parameter for model simulation
 - rivier maken
 - stroomsnelheden verdeling over vertakking
 - stopcriteria/ threshold
+
+
+#splitsing
+verschil tussen current node -> delen door het geheel
+- stoppen als steiging is
