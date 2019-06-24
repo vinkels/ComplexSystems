@@ -174,7 +174,8 @@ class CA:
 				[i + 1, j],
 				[i + 1, j + 1],
 			]
-		print(neighborhood)
+		print(i,j,neighborhood)
+		print('------------------------------------')
 		return neighborhood, locations
 
 	def initialize_terrain(self):
@@ -190,7 +191,7 @@ class CA:
 		for i in range(self.size):
 			for j in range(self.size):
 				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				terrain[i, j] = np.mean(neighbors) * rd.uniform(self.rand_lower, self.rand_lower)
+				terrain[i, j] = np.mean(neighbors) * rd.uniform(self.rand_lower, self.rand_upper)
 
 		self.terrain = terrain
 		return self.terrain
@@ -205,7 +206,10 @@ class CA:
 		# index waar in neighbourhood[0] de laagste waarde zit
 		index_in_neighborhood_list = np.argmin(neighborhood0)
 		location = neighborhood1[index_in_neighborhood_list]
-		print((neighborhood[0]))
+		print(i, j, neighborhood0)
+		print(neighborhood1)
+		print(location)
+		print('+++++++++++++++++++++++++++++++++')
 		return location
 
 	# def get_next_cell_for_path(self, i, j):
@@ -213,14 +217,14 @@ class CA:
 	# 	return next_cell_location
 
 	def get_path(self, i, j):
-		self.river_coors.update((i, j))
+		self.river_coors.update([i, j])
 		self.path[i, j] = 1
 		return self.path
 
 	def create_path_from_start(self):
 		next_cell = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column)
 		self.path = self.get_path(next_cell[0], next_cell[1])
-		self.river_coors.update((next_cell[0], next_cell[1]))
+		self.river_coors.update([next_cell[0], next_cell[1]])
 
 
 		for _ in range(1, self.time_limit):
@@ -263,7 +267,7 @@ class CA:
 
 
 if __name__ == "__main__":
-	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=10)
+	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100)
 	terrain = ca.initialize_terrain()
 	path = ca.create_path_from_start()
 
