@@ -9,10 +9,13 @@ class CA:
 		self.size = size
 		self.time_limit = size
 
+		# starting point in the middle of the grid
 		self.starting_column = int(self.size / 2)
 
 		self.terrain = np.zeros((size, size))
 		self.peat_bog = np.zeros((size, size))
+		self.nutrients = np.zeros((size, size))
+
 		self.path = np.zeros((size, size))
 
 		self.mu = mu             # viscosity
@@ -170,23 +173,10 @@ class CA:
 		for i in range(self.size):
 			for j in range(self.size):
 				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				terrain[i, j] = np.mean(neighbors) * rd.uniform(0.99995, 1.00005)
+				terrain[i, j] = np.mean(neighbors) * rd.uniform(0.9995, 1.0005)
 
 		self.terrain = terrain
 		return self.terrain
-
-	def calculate_nutrient_distribution(self):
-
-		for i in range(self.size):
-			for j in range(self.size):
-				if self.water[i, j] > 0:
-					self.nutrients[i, j] = 1
-				else:
-					neighborhood = self.moore_neighborhood(self.nutrients[i, j])
-					max_value = max(neighborhood)
-					self.nutrients = self.gamma * max_value
-
-		return self.nutrients
 
 	def get_location_of_lowest_neighbor(self, grid, i, j):
 		neighborhood = self.moore_neighborhood(grid, i, j)
@@ -212,6 +202,34 @@ class CA:
 
 		return self.path
 
+	def calculate_flow(self):
+
+		pass
+
+	def calculate_nutrient_distribution(self):
+
+		for i in range(self.size):
+			for j in range(self.size):
+				if self.water[i, j] > 0:
+					self.nutrients[i, j] = 1
+				else:
+					neighborhood = self.moore_neighborhood(self.nutrients[i, j])
+					max_value = max(neighborhood)
+					self.nutrients[i, j] = self.gamma * max_value
+
+		return self.nutrients
+
+	def calculate_peat_growth(self):
+
+		for i in range(self.size):
+			for j in range(self.size):
+				if self.water[i, j] > 0:
+					self.peat_bog[i, j] = self.mu * self.nutrients[i, j]
+				else:
+					self.peat_bog[i, j] = self.rho * self.nutrients[i, j]
+
+		return self.peat_bog
+
 
 if __name__ == "__main__":
 	ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02)
@@ -220,6 +238,6 @@ if __name__ == "__main__":
 
 	fig, axes = plt.subplots(1, 2)
 	sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
-	sns.heatmap(path, ax=axes[1])
+	sns.heatmap(path, cmap="Blues", ax=axes[1])
 
 	plt.show()
