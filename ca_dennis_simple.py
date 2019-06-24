@@ -14,7 +14,21 @@ class CA:
 		self.rho = 0.02         # proportionality coefficient
 
 	def moore_neighborhood(self, grid, i, j):
-		if not grid[i - 1, j]:
+
+		if i == 0 and j == 0:
+			neighborhood = [
+				grid[i + 1, j + 1],
+				grid[i, j + 1],
+				grid[i + 1, j],
+			]
+		elif i == 0 and j == (self.size-1):
+			neighborhood = [
+				grid[i, j - 1],
+				grid[i + 1, j - 1],
+				grid[i + 1, j],
+			]
+
+		elif i == 0 and 0 < j < (self.size-1):
 			neighborhood = [
 				grid[i, j - 1],
 				grid[i, j + 1],
@@ -23,7 +37,21 @@ class CA:
 				grid[i + 1, j + 1],
 			]
 
-		elif not grid[i + 1, j]:
+		elif i == (self.size-1) and j == 0:
+			neighborhood = [
+				grid[i, j + 1],
+				grid[i - 1, j + 1],
+				grid[i - 1, j],
+			]
+
+		elif i == (self.size-1) and j == (self.size-1):
+			neighborhood = [
+				grid[i - 1, j - 1],
+				grid[i, j - 1],
+				grid[i - 1, j],
+			]
+
+		elif i == (self.size-1) and 0 < j < (self.size-1):
 			neighborhood = [
 				grid[i, j - 1],
 				grid[i, j + 1],
@@ -32,7 +60,7 @@ class CA:
 				grid[i - 1, j + 1],
 			]
 
-		elif not grid[i, j - 1]:
+		elif 0 < i < (self.size-1) and j == 0:
 			neighborhood = [
 				grid[i - 1, j],
 				grid[i - 1, j + 1],
@@ -41,41 +69,13 @@ class CA:
 				grid[i + 1, j + 1],
 			]
 
-		elif not grid[i, j + 1]:
+		elif 0 < i < (self.size-1) and j == (self.size-1):
 			neighborhood = [
 				grid[i - 1, j],
 				grid[i - 1, j - 1],
 				grid[i, j - 1],
 				grid[i + 1, j],
 				grid[i + 1, j - 1],
-			]
-
-		elif not grid[i, j - 1] and not grid[i - 1, j]:
-			neighborhood = [
-				grid[i + 1, j + 1],
-				grid[i, j + 1],
-				grid[i + 1, j],
-			]
-
-		elif not grid[i, j + 1] and not grid[i + 1, j]:
-			neighborhood = [
-				grid[i - 1, j - 1],
-				grid[i, j - 1],
-				grid[i - 1, j],
-			]
-
-		elif not grid[i, j + 1] and not grid[i - 1, j]:
-			neighborhood = [
-				grid[i, j - 1],
-				grid[i + 1, j - 1],
-				grid[i + 1, j],
-			]
-
-		elif not grid[i, j - 1] and not grid[i + 1, j]:
-			neighborhood = [
-				grid[i, j + 1],
-				grid[i - 1, j + 1],
-				grid[i - 1, j],
 			]
 
 		else:
@@ -89,6 +89,7 @@ class CA:
 				grid[i + 1, j],
 				grid[i + 1, j + 1],
 			]
+
 		return neighborhood
 
 	def initialize_terrain(self):
@@ -104,9 +105,8 @@ class CA:
 		for i in range(self.size):
 			for j in range(self.size):
 				neighbors = self.moore_neighborhood(terrain, i, j)
+				print("buren van {}, {} zijn: ".format(i, j))
 				print(neighbors)
-
-		# self.terrain[:, 1] = rd.uniform(0.99, 1.01)
 
 		self.terrain = terrain
 		return
@@ -116,6 +116,5 @@ class CA:
 
 
 if __name__ == "__main__":
-	ca = CA(2)
+	ca = CA(4)
 	ca.initialize_terrain()
-	# print(ca.get_terrain())
