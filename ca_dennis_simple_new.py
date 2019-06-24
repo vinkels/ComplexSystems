@@ -199,40 +199,68 @@ class CA:
 	def get_location_of_lowest_neighbor(self, grid, i, j):
 		neighborhood = self.moore_neighborhood(grid, i, j)
 		neighborhood0, neighborhood1 = [], []
-		print(i,j)
+		# print(i,j)
 		for i, val in enumerate(neighborhood[1]):
-			print('river', neighborhood0, val, self.river_coors)
+			# print('river', neighborhood0, val, self.river_coors)
 			if tuple(val) not in self.river_coors:
 				neighborhood0.append(neighborhood[0][i])
 				neighborhood1.append(val)
+				if neighborhood[0][i] > grid[i,j]:
+					print('dit kan gewoon')
+			else:
+				print(self.river_coors)
+				print(val)
 		# index waar in neighbourhood[0] de laagste waarde zit
 		
-		index_in_neighborhood_list = np.argmin(neighborhood0)
-		location = neighborhood1[index_in_neighborhood_list]
-		print(neighborhood0)
-		print(neighborhood1)
-		print(location)
-		print('+++++++++++++++++++++++++++++++++')
-		return location
+		# index_in_neighborhood_list = np.argmin(neighborhood0)
+		# location = neighborhood1[index_in_neighborhood_list]
+		# print(neighborhood0, neighborhood1)
+		print('check deze', neighborhood0, neighborhood1)
+		value, location = (list(t) for t in zip(*sorted(zip(neighborhood0, neighborhood1))))
+		
+		# print(value, location)
+		# print(neighborhood0)
+		# print(neighborhood1)
+		# print(location)
+		# print('+++++++++++++++++++++++++++++++++')
+		return value, location
 
 	# def get_next_cell_for_path(self, i, j):
 	# 	next_cell_location = self.get_location_of_lowest_neighbor(self.terrain, i, j)[1]
 	# 	return next_cell_location
 
-	def get_path(self, i, j):
-		self.river_coors.add((i, j))
-		self.path[i, j] = 1
+	def get_path(self, coor_list):
+		for coor in coor_list:
+			self.river_coors.add(tuple(coor))
+			self.path[coor[0], coor[1]] = 1
 		return self.path
 
 	def create_path_from_start(self):
-		next_cell = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column)
-		self.path = self.get_path(next_cell[0], next_cell[1])
+		sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column)
+		next_cell = sort_location[0]
+		self.path = self.get_path([next_cell])
+		next_cell = sort_location[0]
 		self.river_coors.add((next_cell[0], next_cell[1]))
-
+		cur_ends = set()
+		cur_ends.add((next_cell[0], next_cell[1]))
+		
 
 		for _ in range(1, self.time_limit):
-			next_cell = self.get_location_of_lowest_neighbor(self.terrain, next_cell[0], next_cell[1])
-			self.path = self.get_path(next_cell[0], next_cell[1])
+			temp_ends = set()
+			for item in cur_ends:
+				old_value = self.terrain[item]
+				sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1])
+				print(old_value, sort_values[0])
+				next_cell = [tuple(sort_location[0])]
+				temp_ends.add(next_cell[0])
+
+				if old_value < sort_values[0] and len(sort_location) > 1:
+					print(sort_location)
+					next_cell.append(tuple(sort_location[1]))
+					temp_ends.add(next_cell[1])
+				self.path = self.get_path(next_cell)
+			cur_ends = temp_ends.copy()
+
 
 		return self.path
 
@@ -270,7 +298,7 @@ class CA:
 
 
 if __name__ == "__main__":
-	for i in range(1):
+	for i in range(20):
 		ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
