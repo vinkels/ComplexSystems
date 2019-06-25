@@ -18,16 +18,19 @@ class CA:
 
 	"""
 
-	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.9993, rand_upper=1.00001):
+	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.9999, rand_upper=1.00001, branch_tresh = 0.1, init_water=1, delta_water=0.001):
 		self.size = size
 		self.time_limit = time_limit
-
+		self.branch_tresh = branch_tresh
+		self.init_water_level = init_water
 		# starting point in the middle of the grid
 		self.starting_column = int(self.size / 2)
-
+		self.delta_w = delta_water
 		self.terrain = np.zeros((size, size))
 		self.peat_bog = np.zeros((size, size))
 		self.nutrients = np.zeros((size, size))
+		self.cur_river_nr = 0
+		self.rivers = {}
 
 		self.path = np.zeros((size, size))
 
@@ -40,7 +43,6 @@ class CA:
 
 	def moore_neighborhood(self, grid, i, j):
 
-		# vind de laagste en de location waar je heen moet
 		if i == 0 and j == 0:
 			neighborhood = [
 				grid[i + 1, j + 1],
@@ -174,8 +176,7 @@ class CA:
 				[i + 1, j],
 				[i + 1, j + 1],
 			]
-		# print(i,j,neighborhood)
-		# print('------------------------------------')
+
 		return neighborhood, locations
 
 	def initialize_terrain(self):
@@ -191,85 +192,106 @@ class CA:
 		for i in range(self.size):
 			for j in range(self.size):
 				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				terrain[i, j] = np.mean(neighbors) * rd.uniform(self.rand_lower, self.rand_upper)
+				if rd.random() < 0.01:
+					perturb = rd.uniform(0.999, 1.0001)
+				else:
+					perturb = rd.uniform(self.rand_lower, self.rand_upper)
+				terrain[i, j] = np.mean(neighbors) * perturb
 
 		self.terrain = terrain
 		return self.terrain
 
-	def get_location_of_lowest_neighbor(self, grid, i, j):
+	def get_location_of_lowest_neighbor(self, grid, i, j, temp_ends):
 		neighborhood = self.moore_neighborhood(grid, i, j)
 		neighborhood0, neighborhood1 = [], []
-		# print(i,j)
 		for i, val in enumerate(neighborhood[1]):
-			# print('river', neighborhood0, val, self.river_coors)
 			if tuple(val) not in self.river_coors:
+				# and tuple(val) not in temp_ends
 				neighborhood0.append(neighborhood[0][i])
 				neighborhood1.append(val)
-				# if neighborhood[0][i] > grid[i,j]:
-					# print('dit kan gewoon')
-			else:
-				print(self.river_coors)
-				# print(val)
-		# index waar in neighbourhood[0] de laagste waarde zit
-		
-		# index_in_neighborhood_list = np.argmin(neighborhood0)
-		# location = neighborhood1[index_in_neighborhood_list]
-		# print(neighborhood0, neighborhood1)
-		# print('check deze', neighborhood0, neighborhood1)
 		try:
 			value, location = (list(t) for t in zip(*sorted(zip(neighborhood0, neighborhood1))))
 		except ValueError:
 			value, location = [], []
 		
-		# print(value, location)
-		# print(neighborhood0)
-		# print(neighborhood1)
-		# print(location)
-		# print('+++++++++++++++++++++++++++++++++')
 		return value, location
 
-	# def get_next_cell_for_path(self, i, j):
-	# 	next_cell_location = self.get_location_of_lowest_neighbor(self.terrain, i, j)[1]
-	# 	return next_cell_location
+	def get_path(self, prev_val, coor_list, value_list):
+		for i, coor in enumerate(coor_list):
+			tup = tuple(coor)
+			# if self.path[tup] > self.branch_tresh:
+			if tup not in self.river_coors:
+				self.river_coors.add(tup)
+				# self.path[tup] = prev_val[i]*(1-self.delta_w)
 
-	def get_path(self, coor_list):
-		for coor in coor_list:
-			self.river_coors.add(tuple(coor))
-			self.path[coor[0], coor[1]] = 1
+			else:
+				pass
+				# print('jup', self.path[tup], value_list[i])
+			self.path[tup] = self.path[tup] + float(prev_val[i])*(1-self.delta_w)
+			# self.path[tup] = self.path[tup] + prev_val[i]*(1-self.delta_w)
 		return self.path
 
 	def create_path_from_start(self):
-		sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column)
-		next_cell = sort_location[0]
-		self.path = self.get_path([next_cell])
-		next_cell = sort_location[0]
-		self.river_coors.add((next_cell[0], next_cell[1]))
+		# print(self.init_water_level/(1-self.delta_w))
+		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level])
+		# sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column, self.river_coors)
+		
+		# next_cell = sort_location[0]
+		self.river_coors.add((0, self.starting_column))
 		cur_ends = set()
-		cur_ends.add((next_cell[0], next_cell[1]))
+		cur_ends.add((0, self.starting_column))
 		
 
-		for _ in range(1, self.time_limit):
+		for x in range(1, self.time_limit):
 			temp_ends = set()
 			for i, item in enumerate(cur_ends):
-				old_value = self.terrain[item]
-				sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1])
-				if not sort_values:
-					continue
-				print(old_value, sort_values[0])
-				print('zit ik hier vast?',i)
-				next_cell = [tuple(sort_location[0])]
-				temp_ends.add(next_cell[0])
+				# print(item)
+				if self.path[item] > self.branch_tresh:
+					# print('kom ik hier???')
+					old_value = self.terrain[item]
+					sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1], temp_ends)
+					if not sort_values:
+						# print('hier eerst')
+						continue
+					# print(old_value, sort_values[0])
+					# print('zit ik hier vast?',i)
+					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
+					temp_ends.add(next_cell[0])
+					next_water = [self.path[item]]
+					# print(old_value, sort_values, sort_location)
+					if old_value < sort_values[0] and len(sort_location) > 1:
+						print('haaaaai')
+						# print(sort_location)
+						
+						next_cell.append(tuple(sort_location[1]))
+						next_value.append(sort_values[1])
 
-				if old_value < sort_values[0] and len(sort_location) > 1:
-					print(sort_location)
-					next_cell.append(tuple(sort_location[1]))
-					temp_ends.add(next_cell[1])
-				self.path = self.get_path(next_cell)
+						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
+
+						temp_ends.add(next_cell[1])
+						# print('value', next_cell, next_value, self.path[next_cell[0]])
+					self.path = self.get_path(next_water, next_cell, next_value)
+					try:
+						print(self.path[tuple(sort_location[0])], self.path[tuple(sort_location[1])])
+					except:
+						pass
 			cur_ends = temp_ends.copy()
+			# np.savetxt(f'tests/test_{x}.csv', self.path, delimiter=',')
 			if not cur_ends:
+				# print('kom ik hier')
 				return self.path
+			
+			# print('---------------------------------------------------------')
 
 		return self.path
+
+	def new_water_ratio(self, old, coor_split1, coor_split2):
+		new_l = self.terrain[coor_split1] - self.terrain[old]
+		new_r = self.terrain[coor_split2] - self.terrain[old]
+		l = new_l/(new_l + new_r) * self.path[old]
+		r = new_r/(new_l + new_r) * self.path[old]
+		return [l, r]
+
 
 	def create_path_from_bifurcation(self):
 		""" WIP """
@@ -305,11 +327,11 @@ class CA:
 
 
 if __name__ == "__main__":
-	for i in range(10):
-		ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100)
+	for i in range(1):
+		ca = CA(size=500, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=500)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
-
+		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
 		fig, axes = plt.subplots(1, 2)
 		sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
 		axes[0].set_title("Terrain with slope 5%")
