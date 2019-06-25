@@ -18,7 +18,7 @@ class CA:
 
 	"""
 
-	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.999, rand_upper=1.00001):
+	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.9993, rand_upper=1.00001):
 		self.size = size
 		self.time_limit = time_limit
 
@@ -205,18 +205,21 @@ class CA:
 			if tuple(val) not in self.river_coors:
 				neighborhood0.append(neighborhood[0][i])
 				neighborhood1.append(val)
-				if neighborhood[0][i] > grid[i,j]:
-					print('dit kan gewoon')
+				# if neighborhood[0][i] > grid[i,j]:
+					# print('dit kan gewoon')
 			else:
 				print(self.river_coors)
-				print(val)
+				# print(val)
 		# index waar in neighbourhood[0] de laagste waarde zit
 		
 		# index_in_neighborhood_list = np.argmin(neighborhood0)
 		# location = neighborhood1[index_in_neighborhood_list]
 		# print(neighborhood0, neighborhood1)
-		print('check deze', neighborhood0, neighborhood1)
-		value, location = (list(t) for t in zip(*sorted(zip(neighborhood0, neighborhood1))))
+		# print('check deze', neighborhood0, neighborhood1)
+		try:
+			value, location = (list(t) for t in zip(*sorted(zip(neighborhood0, neighborhood1))))
+		except ValueError:
+			value, location = [], []
 		
 		# print(value, location)
 		# print(neighborhood0)
@@ -247,10 +250,13 @@ class CA:
 
 		for _ in range(1, self.time_limit):
 			temp_ends = set()
-			for item in cur_ends:
+			for i, item in enumerate(cur_ends):
 				old_value = self.terrain[item]
 				sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1])
+				if not sort_values:
+					continue
 				print(old_value, sort_values[0])
+				print('zit ik hier vast?',i)
 				next_cell = [tuple(sort_location[0])]
 				temp_ends.add(next_cell[0])
 
@@ -260,7 +266,8 @@ class CA:
 					temp_ends.add(next_cell[1])
 				self.path = self.get_path(next_cell)
 			cur_ends = temp_ends.copy()
-
+			if not cur_ends:
+				return self.path
 
 		return self.path
 
@@ -298,7 +305,7 @@ class CA:
 
 
 if __name__ == "__main__":
-	for i in range(20):
+	for i in range(10):
 		ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
