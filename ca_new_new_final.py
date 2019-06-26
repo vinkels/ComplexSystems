@@ -256,7 +256,7 @@ class CA:
 			self.path[tup] = self.path[tup] + float(prev_val[i])*(1-self.delta_w)
 		return self.path
 
-	def update_segment(self, coor, new_nr, old_nr):
+	def update_segment(self, coor, old_nr, new_nr):
 		print(coor)
 		print(self.segment_dict) 
 		print(self.segment_grid)
@@ -422,7 +422,7 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=50, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=50, slope=0.0005)
+		ca = CA(size=500, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=500, slope=0.0005)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
