@@ -247,9 +247,9 @@ class CA:
 		for x in range(1, self.time_limit):
 			temp_ends = set()
 			for i, item in enumerate(cur_ends):
-				# print(item)
 				if self.path[item] > self.branch_tresh:
 					old_value = self.terrain[item]
+					print(self.segment_grid[item])
 					sort_values, sort_location = self.get_location_of_lowest_neighbor(
 						self.terrain, item[0], item[1], self.segment_grid[item]
 					)
@@ -258,20 +258,43 @@ class CA:
 
 					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
 					temp_ends.add(next_cell[0])
+					print("voor if", temp_ends)
 					next_water = [self.path[item]]
 					if old_value < sort_values[0] and len(sort_location) > 1:
+
 						next_cell.append(tuple(sort_location[1]))
 						next_value.append(sort_values[1])
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
 
-						temp_ends.add(next_cell[1])
+						print(next_cell)
 
 						# SAVE AFTER SPLITTING LOCATION
 						first_leg = sort_location[0]
 						second_leg = sort_location[1]
+						self.path = self.get_path(next_water, next_cell, next_value, item)
 
-						print("hier", i, first_leg)
-						print(i, second_leg)
+						temp_ends.remove(next_cell[0])
+
+						counter = 0
+						for leg in [first_leg, second_leg]:
+
+							next_water = [self.path[item]]
+							if leg[1] > item[1]:
+								next_cell = [(leg[0]+1, leg[1]+1)]
+								next_value = self.terrain[leg[0]+1, leg[1]+1]
+							elif leg[1] < item[1]:
+								next_cell = [(leg[0]+1, leg[1]-1)]
+								next_value = self.terrain[leg[0]+1, leg[1]-1]
+							else:
+								next_cell = [(leg[0]+1, leg[1])]
+								next_value = self.terrain[leg[0]+1, leg[1]]
+
+							print(next_cell)
+							temp_ends.add(next_cell[0])
+
+							print("na if ", temp_ends)
+
+							self.path = self.get_path(next_water, [next_cell], [next_value], tuple(leg))
 
 					self.path = self.get_path(next_water, next_cell, next_value, item)
 
@@ -337,7 +360,7 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=500, time_limit=500, slope=0.0005)
+		ca = CA(size=200, time_limit=200, slope=0.0005)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')

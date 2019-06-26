@@ -18,8 +18,12 @@ class CA:
 
 	"""
 
-	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.9999, rand_upper=1.00001, branch_tresh = 0.1, init_water=1, delta_water=0.001):
+	def __init__(
+			self, size, slope, mu, gamma, rho, time_limit, rand_lower=0.9999, rand_upper=1.00001,
+			branch_tresh=0.1, init_water=1, delta_water=0.001
+	):
 		self.size = size
+		self.slope = slope
 		self.time_limit = time_limit
 		self.branch_tresh = branch_tresh
 		self.init_water_level = init_water
@@ -179,15 +183,14 @@ class CA:
 
 		return neighborhood, locations
 
+
 	def initialize_terrain(self):
 		"""
-		slope of 0.05% and randomness, else the river will be a strait line down
-		"""
-		terrain = self.terrain
-		terrain[0] = np.ones(self.size)
+		slope of 0.05% and randomness,
 
-		for i in range(self.size - 1):
-			terrain[i + 1] = terrain[i] * 0.9995
+		NEW: add "hills" to the terrain
+		"""
+		terrain = np.ones((self.size, self.size))
 
 		for i in range(self.size):
 			for j in range(self.size):
@@ -197,6 +200,21 @@ class CA:
 				else:
 					perturb = rd.uniform(self.rand_lower, self.rand_upper)
 				terrain[i, j] = np.mean(neighbors) * perturb
+
+		for i in range(self.size):
+			terrain[i] = terrain[i] * (1 - self.slope * i)
+
+		# create hill top
+		hill_coords = (int(self.size/3), int(self.size/2))
+		terrain[hill_coords] = terrain[hill_coords] * 2
+
+		# from hill top, create hill
+		for i in range(self.size):
+			for j in range(self.size):
+				neighbors = self.moore_neighborhood(terrain, i, j)[0]
+				for neighbor in neighbors:
+					if abs(terrain[i, j] - neighbor)/neighbor > 0.01:
+						terrain[i, j] = neighbor * rd.uniform(0.99, 0.9999)
 
 		self.terrain = terrain
 		return self.terrain
@@ -240,7 +258,6 @@ class CA:
 		self.river_coors.add((0, self.starting_column))
 		cur_ends = set()
 		cur_ends.add((0, self.starting_column))
-		
 
 		for x in range(1, self.time_limit):
 			temp_ends = set()
@@ -292,7 +309,6 @@ class CA:
 		r = new_r/(new_l + new_r) * self.path[old]
 		return [l, r]
 
-
 	def create_path_from_bifurcation(self):
 		""" WIP """
 		return self.path
@@ -328,13 +344,14 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=500, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=500)
-		terrain = ca.initialize_terrain()
-		path = ca.create_path_from_start()
-		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
-		fig, axes = plt.subplots(1, 2)
-		sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
-		axes[0].set_title("Terrain with slope 5%")
-		sns.heatmap(path, cmap="Blues", ax=axes[1])
-		axes[1].set_title("Path of river without bifurcation")
-		plt.savefig(f'plots/river_{i}.png', dpi=300)
+		for slope in [0.0001, 0.0002, 0.0005, 0.001]:
+			ca = CA(size=100, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=500)
+			terrain = ca.initialize_terrain()
+			path = ca.create_path_from_start()
+			np.savetxt(f'tests/test_final.csv', path, delimiter=',')
+			fig, axes = plt.subplots(1, 2)
+			sns.heatmap(terrain[:, 0:99], cmap="Greens", ax=axes[0])
+			sns.heatmap(path, cmap="Blues", ax=axes[1])
+			# axes[1].set_title("Path of river without bifurcation")
+			# plt.savefig(f'plots/river_{i}.png', dpi=300)
+			plt.show()
