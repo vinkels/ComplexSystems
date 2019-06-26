@@ -18,7 +18,7 @@ class CA:
 
 	"""
 
-	def __init__(self, size, mu, gamma, rho, time_limit, rand_lower=0.9999, rand_upper=1.00001, branch_tresh = 0.1, init_water=1, delta_water=0.001):
+	def __init__(self, size, mu, gamma, rho, time_limit, slope, rand_lower=0.9999, rand_upper=1.00001, branch_tresh = 0.1, init_water=1, delta_water=0.001):
 		self.size = size
 		self.time_limit = time_limit
 		self.branch_tresh = branch_tresh
@@ -41,6 +41,7 @@ class CA:
 		self.river_segments = {}
 		self.cur_river_nr = 1
 		self.segment_dict = {}
+		self.slope = slope
 
 	def moore_neighborhood(self, grid, i, j):
 
@@ -180,37 +181,43 @@ class CA:
 
 		return neighborhood, locations
 
-	def initialize_terrain(self):
-		"""
-		slope of 0.05% and randomness, else the river will be a strait line down
-		"""
-		terrain = self.terrain
-		terrain[0] = np.ones(self.size)
+	# def initialize_terrain(self):
+	# 	"""
+	# 	slope of 0.05% and randomness, else the river will be a strait line down
+	# 	"""
+	# 	terrain = self.terrain
+	# 	terrain[0] = np.ones(self.size)
 
-		for i in range(self.size - 1):
-			terrain[i + 1] = terrain[i] * 0.9995
+	# 	for i in range(self.size - 1):
+	# 		terrain[i + 1] = terrain[i] * 0.9995
 
-		for i in range(self.size):
-			for j in range(self.size):
-				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				if rd.random() < 0.01:
-					perturb = rd.uniform(0.999, 1.0001)
-				else:
-					perturb = rd.uniform(self.rand_lower, self.rand_upper)
-				terrain[i, j] = np.mean(neighbors) * perturb
+	# 	for i in range(self.size):
+	# 		for j in range(self.size):
+	# 			neighbors = self.moore_neighborhood(terrain, i, j)[0]
+	# 			if rd.random() < 0.01:
+	# 				perturb = rd.uniform(0.999, 1.0001)
+	# 			else:
+	# 				perturb = rd.uniform(self.rand_lower, self.rand_upper)
+	# 			terrain[i, j] = np.mean(neighbors) * perturb
 
-		self.terrain = terrain
-		return self.terrain
+	# 	self.terrain = terrain
+	# 	return self.terrain
 
-	def get_location_of_lowest_neighbor(self, grid, i, j, temp_ends):
+	def get_location_of_lowest_neighbor(self, grid, i, j, river_nr):
 		neighborhood = self.moore_neighborhood(grid, i, j)
 		neighborhood0, neighborhood1 = [], []
 		for i, val in enumerate(neighborhood[1]):
-			if tuple(val) not in self.river_coors:
-				# and tuple(val) not in temp_ends
+			val_tup = tuple(val)
+			if self.segment_grid:
+				if self.segment_grid[val_tup] not in self.river_segments[river_nr]:
+					print('kom ik hier')
+				# if tuple(val) not in self.river_coors:
+					# and tuple(val) not in temp_ends
+					neighborhood0.append(neighborhood[0][i])
+					neighborhood1.append(val)
+			else:
 				neighborhood0.append(neighborhood[0][i])
 				neighborhood1.append(val)
-			
 		try:
 			value, location = (list(t) for t in zip(*sorted(zip(neighborhood0, neighborhood1))))
 		except ValueError:
@@ -224,27 +231,23 @@ class CA:
 			# if self.path[tup] > self.branch_tresh:
 			if tup not in self.river_coors:
 				self.river_coors.add(tup)
-				self.river_segments[self.segment_grid[prev_coor]].append(tup)
-				self.river_grid[tup] = self.self.segment_grid[prev_coor]
+				if not self.segment_grid:
+					self.river_segments[self.cur_river_nr] = [self.cur_river_nr-1]
+					self.segment_grid[tup] = self.cur_river_nr-1
+					self.segment_dict[self.cur_river_nr-1] = [tup]
+
+				else:	
+					self.segment_dict[self.segment_grid[prev_coor]].append(tup)
+					self.segment_grid[tup] = self.segment_grid[prev_coor]
+
 			else:
 				self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid[tup]]
 				self.update_segment(tup, self.segment_grid[tup], self.cur_river_nr)
 				self.segment_grid[tup] = self.cur_river_nr
 				self.segment_dict[self.cur_river_nr] = [tup]
 				self.cur_river_nr += 1
-				
-				# self.path[tup] = prev_val[i]*(1-self.delta_w)
-			# else:
-			# 	self.segment_grid[tup] = self.cur_river_nr
-			# 	self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid]
-			# 	self.segment_dict[self.cur_river_nr] 
-			# 	self.cur_river_nr += 1
 
-			# else:
-			# 	pass
-				# print('jup', self.path[tup], value_list[i])
 			self.path[tup] = self.path[tup] + float(prev_val[i])*(1-self.delta_w)
-			# self.path[tup] = self.path[tup] + prev_val[i]*(1-self.delta_w)
 		return self.path
 
 	def update_segment(self, coor, new_nr, old_nr):
@@ -278,11 +281,11 @@ class CA:
 		for x in range(1, self.time_limit):
 			temp_ends = set()
 			for i, item in enumerate(cur_ends):
-				# print(item)
+				print(item)
 				if self.path[item] > self.branch_tresh:
 					# print('kom ik hier???')
 					old_value = self.terrain[item]
-					sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1], temp_ends)
+					sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1], self.segment_grid[item])
 					if not sort_values:
 						# print('hier eerst')
 						continue
@@ -331,6 +334,54 @@ class CA:
 		r = new_r/(new_l + new_r) * self.path[old]
 		return [l, r]
 
+	def initialize_terrain(self):
+		"""
+		NEW: added "hills" to the terrain
+		"""
+		terrain = np.ones((self.size, self.size))
+
+		for i in range(self.size):
+			for j in range(self.size):
+				neighbors = self.moore_neighborhood(terrain, i, j)[0]
+				if rd.random() < 0.01:
+					perturb = rd.uniform(0.999, 1.0001)
+				else:
+					perturb = rd.uniform(self.rand_lower, self.rand_upper)
+				terrain[i, j] = np.mean(neighbors) * perturb
+
+		# create hill top coordinates
+		hill_coordinates = [
+			(int(self.size / 8), int(self.size / 1.2)),
+			(int(self.size / 3), int(self.size / 5)),
+			(int(self.size / 1.6), int(self.size / 1.4)),
+		]
+		for hill_coords in hill_coordinates:
+			terrain[hill_coords] = terrain[hill_coords] 
+
+		for _ in range(5):
+
+			for i in range(self.size):
+				for j in range(self.size):
+					neighborhood, locations = self.moore_neighborhood(terrain, i, j)
+					for n, neighbor in enumerate(neighborhood):
+						location = (locations[n][0], locations[n][1])
+						if ((terrain[i, j] - neighbor) / neighbor) > 0.01:
+							terrain[location] = terrain[i, j] * rd.uniform(0.995, 0.999)
+
+			for i in range(self.size - 1, 0, -1):
+				for j in range(self.size - 1, 0, -1):
+					neighborhood, locations = self.moore_neighborhood(terrain, i, j)
+					for n, neighbor in enumerate(neighborhood):
+						location = (locations[n][0], locations[n][1])
+						if ((terrain[i, j] - neighbor) / neighbor) > 0.01:
+							terrain[location] = terrain[i, j] * rd.uniform(0.995, 0.999)
+
+		for i in range(self.size):
+			terrain[i] = terrain[i] * (1 - self.slope * i)
+
+		self.terrain = terrain
+
+		return self.terrain
 
 	def create_path_from_bifurcation(self):
 		""" WIP """
@@ -367,12 +418,12 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=500, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=500)
+		ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100, slope=0.005)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
 		fig, axes = plt.subplots(1, 2)
-		sns.heatmap(terrain[:, 0:99], cmap="BrBG_r", vmin=0.85, vmax=1.005, ax=axes[0])
+		sns.heatmap(terrain[:, 0:99], cmap="Greens", ax=axes[0])
 		axes[0].set_title("Terrain with slope 5%")
 		sns.heatmap(path, cmap="Blues", ax=axes[1])
 		axes[1].set_title("Path of river without bifurcation")
