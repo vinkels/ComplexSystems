@@ -1,42 +1,48 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import random as rd
-import seaborn as sns
+def initialize_terrain(self):
+	"""
+	NEW: added "hills" to the terrain
+	"""
+	terrain = np.ones((self.size, self.size))
 
+	for i in range(self.size):
+		for j in range(self.size):
+			neighbors = self.moore_neighborhood(terrain, i, j)[0]
+			if rd.random() < 0.01:
+				perturb = rd.uniform(0.999, 1.0001)
+			else:
+				perturb = rd.uniform(self.rand_lower, self.rand_upper)
+			terrain[i, j] = np.mean(neighbors) * perturb
 
-terrain = np.zeros((100, 100))
-terrain[0] = np.ones(100)
+	# create hill top coordinates
+	hill_coordinates = [
+		(int(self.size / 8), int(self.size / 1.2)),
+		(int(self.size / 3), int(self.size / 5)),
+		(int(self.size / 1.6), int(self.size / 1.4)),
+	]
+	for hill_coords in hill_coordinates:
+		terrain[hill_coords] = terrain[hill_coords] * 1.2
 
-rd.seed(1)
-for j in range(1, 100):
-	terrain[0, 0] = terrain[0, 0] * rd.uniform(0.96, 1.04)
-	terrain[0, j] = terrain[0, j - 1] * rd.uniform(0.96, 1.04)
+	for _ in range(5):
 
-for i in range(99):
-	for j in range(99):
-		if terrain[i, j + 1] and terrain[i, j - 1]:
-			mean = (terrain[i, j - 1] + terrain[i, j] + terrain[i, j + 1])/3
-			terrain[i+1, j] = mean * rd.uniform(0.98, 1)
-		if terrain[i, j + 1] and not terrain[i, j - 1]:
-			mean = (terrain[i, j] + terrain[i, j + 1]) / 2
-			terrain[i + 1, j] = mean * rd.uniform(0.98, 0.99)
-		if terrain[i, j - 1] and not terrain[i, j + 1]:
-			mean = (terrain[i, j] + terrain[i, j - 1]) / 2
-			terrain[i + 1, j] = mean * rd.uniform(0.98, 0.99)
+		for i in range(self.size):
+			for j in range(self.size):
+				neighborhood, locations = self.moore_neighborhood(terrain, i, j)
+				for n, neighbor in enumerate(neighborhood):
+					location = (locations[n][0], locations[n][1])
+					if ((terrain[i, j] - neighbor) / neighbor) > 0.01:
+						terrain[location] = terrain[i, j] * rd.uniform(0.995, 0.999)
 
+		for i in range(self.size - 1, 0, -1):
+			for j in range(self.size - 1, 0, -1):
+				neighborhood, locations = self.moore_neighborhood(terrain, i, j)
+				for n, neighbor in enumerate(neighborhood):
+					location = (locations[n][0], locations[n][1])
+					if ((terrain[i, j] - neighbor) / neighbor) > 0.01:
+						terrain[location] = terrain[i, j] * rd.uniform(0.995, 0.999)
 
-river_starting_point = rd.sample(range(100), 1)
-terrain[0, river_starting_point] = 2
+	for i in range(self.size):
+		terrain[i] = terrain[i] * (1 - self.slope * i)
 
-for i in range(99):
-	col = river_starting_point[0]
-	if terrain[i + 1, col - 1] == min(terrain[i + 1, col - 1], terrain[i + 1, col], terrain[i + 1, col + 1]):
-		terrain[i + 1, col - 1] = 2
-	if terrain[i + 1, col] == min(terrain[i + 1, col - 1], terrain[i + 1, col], terrain[i + 1, col + 1]):
-		terrain[i + 1, col] = 2
-	if terrain[i + 1, col + 1] == min(terrain[i + 1, col - 1], terrain[i + 1, col], terrain[i + 1, col + 1]):
-		terrain[i + 1, col + 1] = 2
+	self.terrain = terrain
 
-
-ax = sns.heatmap(terrain[:, 0:99])
-plt.show()
+	return self.terrain
