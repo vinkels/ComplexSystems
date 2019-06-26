@@ -259,6 +259,7 @@ class CA:
 					temp_ends.add(next_cell[0])
 					# print("voor if", temp_ends)
 					next_water = [self.path[item]]
+					print(next_water)
 					if old_value < sort_values[0] and len(sort_location) > 1:
 						print("BINNEN DE IF")
 						next_cell.append(tuple(sort_location[1]))
@@ -288,7 +289,9 @@ class CA:
 						next_water = []
 						for leg in [first_leg, second_leg]:
 							# print("BINNEN DE LOOP")
-							next_water.append(self.path[item])
+							next_water.append(self.path[tuple(leg)])
+							print(next_water)
+			
 							if (leg[0]+1 < self.time_limit) and (leg[1]+1 < self.time_limit):
 								if leg[1] > item[1]:
 									next_cell.append((leg[0]+1, leg[1]+1))
@@ -313,7 +316,7 @@ class CA:
 						print("na if ", temp_ends)
 
 						self.path = self.get_path(next_water, next_cell, [next_value], item)
-
+						continue
 					self.path = self.get_path(next_water, next_cell, next_value, item)
 
 			cur_ends = temp_ends.copy()
@@ -392,5 +395,5 @@ if __name__ == "__main__":
 		plt.subplot2grid((1, 2), (0, 1))
 		sns.heatmap(path, cmap="Blues")
 		plt.title("River")
-		# plt.savefig(f'plots/river_{i}.png', dpi=300)
-		plt.show()
+		plt.savefig(f'plots/river_{i}.png', dpi=300)
+		# plt.show()
