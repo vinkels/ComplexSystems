@@ -212,9 +212,6 @@ class CA:
 				print(val, self.river_segments)
 				print(river_nr, self.segment_grid[val_tup])
 				if self.segment_grid[val_tup] not in self.river_segments[river_nr]:
-					print('kom ik hier')
-				# if tuple(val) not in self.river_coors:
-					# and tuple(val) not in temp_ends
 					neighborhood0.append(neighborhood[0][i])
 					neighborhood1.append(val)
 			else:
@@ -231,13 +228,20 @@ class CA:
 		for i, coor in enumerate(coor_list):
 			tup = tuple(coor)
 			# if self.path[tup] > self.branch_tresh:
+			# if len(coor_list) > 1:
 			if tup not in self.river_coors:
 				self.river_coors.add(tup)
-				if not self.segment_grid:
-					self.river_segments[self.cur_river_nr] = [self.cur_river_nr-1]
-					self.segment_grid[tup] = self.cur_river_nr-1
-					self.segment_dict[self.cur_river_nr-1] = [tup]
-
+				if not self.segment_grid and len(coor_list) == 1:
+					self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
+					self.segment_grid[tup] = self.cur_river_nr
+					self.segment_dict[self.cur_river_nr] = [tup]
+					self.cur_river_nr += 1
+				elif len(coor_list) > 1:
+					print('splitsing', coor_list, self.cur_river_nr)
+					self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
+					self.segment_grid[tup] = self.cur_river_nr
+					self.segment_dict[self.cur_river_nr] = [tup]
+					self.cur_river_nr += 1
 				else:	
 					self.segment_dict[self.segment_grid[prev_coor]].append(tup)
 					self.segment_grid[tup] = self.segment_grid[prev_coor]
@@ -253,6 +257,9 @@ class CA:
 		return self.path
 
 	def update_segment(self, coor, new_nr, old_nr):
+		print(coor)
+		print(self.segment_dict) 
+		print(self.segment_grid)
 		coor_idx = self.segment_dict[old_nr].index(coor)
 		self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
 		self.segment_dict[old_nr]= self.segment_dict[old_nr][:coor_idx]
@@ -265,10 +272,10 @@ class CA:
 	def create_path_from_start(self):
 		# print(self.init_water_level/(1-self.delta_w))
 		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level], [(0, self.starting_column)])
-		self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
-		self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
-		self.segment_dict[self.cur_river_nr] = [(0, self.starting_column)]
-		self.cur_river_nr += 1
+		# self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
+		# self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
+		# self.segment_dict[self.cur_river_nr] = [(0, self.starting_column)]
+		# self.cur_river_nr += 1
 		# self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
 		# self.river_segments[(0, self.starting_column)] = [self.cur_river_nr]
 		# self.cur_river_nr += 1
@@ -301,13 +308,6 @@ class CA:
 					if old_value < sort_values[0] and len(sort_location) > 1:
 						next_cell.append(tuple(sort_location[1]))
 						next_value.append(sort_values[1])
-						# self.segment_grid[tuple(sort_location[0])] = self.cur_river_nr
-						# self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[item]]
-						# self.cur_river_nr += 1
-						# self.segment_grid[tuple(sort_location[1])] = self.cur_river_nr
-						# self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[item]]
-						# self.cur_river_nr += 1
-
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
 
 						temp_ends.add(next_cell[1])
@@ -324,7 +324,9 @@ class CA:
 			if not cur_ends:
 				# print('kom ik hier')
 				return self.path
-			
+		print(self.river_segments)
+		print(self.segment_dict)
+		print(self.segment_grid)
 			# print('---------------------------------------------------------')
 
 		return self.path
@@ -420,7 +422,7 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=300, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=300, slope=0.005)
+		ca = CA(size=50, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=50, slope=0.0005)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
