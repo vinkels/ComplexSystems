@@ -210,6 +210,7 @@ class CA:
 				# and tuple(val) not in temp_ends
 				neighborhood0.append(neighborhood[0][i])
 				neighborhood1.append(val)
+			
 		try:
 			value, location = (list(t) for t in zip(*sorted(zip(neighborhood0, neighborhood1))))
 		except ValueError:
