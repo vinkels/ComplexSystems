@@ -192,7 +192,7 @@ class CA:
 	def get_path(self, prev_val, coor_list, value_list, prev_coor):
 		for i, coor in enumerate(coor_list):
 			tup = tuple(coor)
-
+			print(i)
 			if tup not in self.river_coors:
 				self.river_coors.add(tup)
 				if not self.segment_grid and len(coor_list) == 1:
@@ -244,7 +244,7 @@ class CA:
 		cur_ends = set()
 		cur_ends.add((0, self.starting_column))
 
-		for x in range(1, self.time_limit):
+		for x in range(1, self.time_limit - 1):
 			temp_ends = set()
 			for i, item in enumerate(cur_ends):
 				if self.path[item] > self.branch_tresh:
@@ -266,7 +266,9 @@ class CA:
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
 
 						print("NEXT CELL", next_cell)
+						previous_cells = next_cell
 						print("NEXT VALUE", next_value)
+						print("NEXT WATER", next_water)
 						temp_ends.add(next_cell[1])
 						print("TEMP_END BEFORE LEGS", temp_ends)
 
@@ -278,28 +280,34 @@ class CA:
 
 						temp_ends.remove(next_cell[0])
 						temp_ends.remove(next_cell[1])
+
 						print("VOOR LOOP ", temp_ends)
 
 						next_cell = []
 						next_value = []
+						next_water = []
 						for leg in [first_leg, second_leg]:
 							# print("BINNEN DE LOOP")
-							next_water = [self.path[item]]
-							if leg[1] > item[1]:
-								next_cell.append((leg[0]+1, leg[1]+1))
-								next_value.append(self.terrain[leg[0]+1, leg[1]+1])
-							elif leg[1] < item[1]:
-								next_cell.append((leg[0]+1, leg[1]-1))
-								next_value.append(self.terrain[leg[0]+1, leg[1]-1])
+							next_water.append(self.path[item])
+							if (leg[0]+1 < self.time_limit) and (leg[1]+1 < self.time_limit):
+								if leg[1] > item[1]:
+									next_cell.append((leg[0]+1, leg[1]+1))
+									next_value.append(self.terrain[leg[0]+1, leg[1]+1])
+								elif leg[1] < item[1]:
+									next_cell.append((leg[0]+1, leg[1]-1))
+									next_value.append(self.terrain[leg[0]+1, leg[1]-1])
+								else:
+									next_cell.append((leg[0]+1, leg[1]))
+									next_value.append(self.terrain[leg[0]+1, leg[1]])
 							else:
-								next_cell.append((leg[0]+1, leg[1]))
-								next_value.append(self.terrain[leg[0]+1, leg[1]])
-
+								print("KUT")
 							# print("BINNEN LOOP", next_cell)
 							# temp_ends.add(next_cell)
 
-						print("NA LOOP",next_cell)
+						print("NA LOOP")
+						print("NEXT CELL", next_cell)
 						print("NEXT VALUE", next_value)
+						print("NEXT WATER", next_water)
 						temp_ends.add(next_cell[0])
 						temp_ends.add(next_cell[1])
 						print("na if ", temp_ends)
