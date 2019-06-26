@@ -208,7 +208,9 @@ class CA:
 		neighborhood0, neighborhood1 = [], []
 		for i, val in enumerate(neighborhood[1]):
 			val_tup = tuple(val)
-			if self.segment_grid:
+			if val_tup in self.segment_grid:
+				print(val, self.river_segments)
+				print(river_nr, self.segment_grid[val_tup])
 				if self.segment_grid[val_tup] not in self.river_segments[river_nr]:
 					print('kom ik hier')
 				# if tuple(val) not in self.river_coors:
@@ -254,7 +256,7 @@ class CA:
 		coor_idx = self.segment_dict[old_nr].index(coor)
 		self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
 		self.segment_dict[old_nr]= self.segment_dict[old_nr][:coor_idx]
-		for val in segment_dict[new_nr]:
+		for val in self.segment_dict[new_nr]:
 			self.segment_grid[val] = new_nr
 		return self.segment_dict
 
@@ -418,7 +420,7 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=100, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=100, slope=0.005)
+		ca = CA(size=300, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=300, slope=0.005)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
