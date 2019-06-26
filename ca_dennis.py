@@ -244,7 +244,9 @@ class CA:
 		cur_ends = set()
 		cur_ends.add((0, self.starting_column))
 
-		for x in range(1, self.time_limit - 1):
+		x = 1
+		while x < self.time_limit:
+		# for x in range(1, self.time_limit - 1):
 			temp_ends = set()
 			for i, item in enumerate(cur_ends):
 				if self.path[item] > self.branch_tresh:
@@ -274,7 +276,7 @@ class CA:
 						print("TEMP_END BEFORE LEGS", temp_ends)
 
 						self.path = self.get_path(next_water, next_cell, next_value, item)
-
+						x += 1
 						# SAVE AFTER SPLITTING LOCATION
 						first_leg = sort_location[0]
 						second_leg = sort_location[1]
@@ -291,7 +293,7 @@ class CA:
 							# print("BINNEN DE LOOP")
 							next_water.append(self.path[tuple(leg)])
 							print(next_water)
-			
+							
 							if (leg[0]+1 < self.time_limit) and (leg[1]+1 < self.time_limit):
 								if leg[1] > item[1]:
 									next_cell.append((leg[0]+1, leg[1]+1))
@@ -306,12 +308,14 @@ class CA:
 								print("KUT")
 							# print("BINNEN LOOP", next_cell)
 							# temp_ends.add(next_cell)
-
+						
 						print("NA LOOP")
 						print("NEXT CELL", next_cell)
 						print("NEXT VALUE", next_value)
 						print("NEXT WATER", next_water)
+						print(len(next_cell), next_cell)
 						temp_ends.add(next_cell[0])
+						
 						temp_ends.add(next_cell[1])
 						print("na if ", temp_ends)
 
@@ -322,7 +326,7 @@ class CA:
 			cur_ends = temp_ends.copy()
 			if not cur_ends:
 				return self.path
-
+			x += 1
 		return self.path
 
 	def new_water_ratio(self, old, coor_split1, coor_split2):
