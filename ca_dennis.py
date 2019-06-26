@@ -31,6 +31,7 @@ class CA:
 		self.cur_river_nr = 1
 		self.segment_dict = {}
 		self.slope = slope
+		self.merge_dict, self.split_dict = {}, {}
 
 	def moore_neighborhood(self, grid, i, j):
 
@@ -206,6 +207,8 @@ class CA:
 					self.segment_grid[tup] = self.cur_river_nr
 					self.segment_dict[self.cur_river_nr] = [tup]
 					self.cur_river_nr += 1
+
+					
 				else:
 					self.segment_dict[self.segment_grid[prev_coor]].append(tup)
 					self.segment_grid[tup] = self.segment_grid[prev_coor]
@@ -214,12 +217,15 @@ class CA:
 				self.excluded_segments[self.cur_river_nr] = [
 					self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid[tup]
 				]
+				self.merge_dict[self.segment_grid[prev_coor], self.segment_grid[tup]] = self.cur_river_nr
 				self.update_segment(tup, self.segment_grid[tup], self.cur_river_nr)
 				self.segment_grid[tup] = self.cur_river_nr
 				self.segment_dict[self.cur_river_nr] = [tup]
 				self.cur_river_nr += 1
-
+				self.split_dict[self.segment_grid[prev_coor]] = (self.cur_river_nr - 1, self.cur_river_nr)
 			self.path[tup] = self.path[tup] + float(prev_val[i]) * (1 - self.delta_w)
+		print(self.merge_dict)
+		print(self.split_dict)
 		return self.path
 
 	def update_segment(self, coor, old_nr, new_nr):
@@ -276,11 +282,11 @@ class CA:
 						print("TEMP_END BEFORE LEGS", temp_ends)
 
 						self.path = self.get_path(next_water, next_cell, next_value, item)
+
 						x += 1
 						# SAVE AFTER SPLITTING LOCATION
 						first_leg = sort_location[0]
 						second_leg = sort_location[1]
-
 						temp_ends.remove(next_cell[0])
 						temp_ends.remove(next_cell[1])
 
@@ -291,8 +297,9 @@ class CA:
 						next_water = []
 						for leg in [first_leg, second_leg]:
 							# print("BINNEN DE LOOP")
+							print('leggy', leg, self.path[tuple(leg)])
 							next_water.append(self.path[tuple(leg)])
-							print(next_water)
+							print('legz', next_water)
 							
 							if (leg[0]+1 < self.time_limit) and (leg[1]+1 < self.time_limit):
 								if leg[1] > item[1]:
