@@ -216,9 +216,7 @@ class CA:
 		
 		return value, location
 
-
-
-    def get_path(self, prev_val, coor_list, value_list, prev_coor):
+	def get_path(self, prev_val, coor_list, value_list, prev_coor):
 		for i, coor in enumerate(coor_list):
 			tup = tuple(coor)
 			# if self.path[tup] > self.branch_tresh:
@@ -233,8 +231,7 @@ class CA:
 			# self.path[tup] = self.path[tup] + prev_val[i]*(1-self.delta_w)
 		return self.path
 
-
-    def create_path_from_start(self):
+	def create_path_from_start(self):
 		# print(self.init_water_level/(1-self.delta_w))
 		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level], [(0, self.starting_column)])
 		self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
