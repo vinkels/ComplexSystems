@@ -37,9 +37,10 @@ class CA:
 		self.rand_lower = rand_lower
 		self.rand_upper = rand_upper
 		self.river_coors = set()
-		self.segment_grid = np.zeros()
+		self.segment_grid = {}
 		self.river_segments = {}
 		self.cur_river_nr = 1
+		self.segment_dict = {}
 
 	def moore_neighborhood(self, grid, i, j):
 
@@ -222,7 +223,21 @@ class CA:
 			# if self.path[tup] > self.branch_tresh:
 			if tup not in self.river_coors:
 				self.river_coors.add(tup)
+				self.river_segments[self.segment_grid[prev_coor]].append(tup)
+				self.river_grid[tup] = self.self.segment_grid[prev_coor]
+			else:
+				self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid[tup]]
+				self.update_segment(tup, self.segment_grid[tup], self.cur_river_nr)
+				self.segment_grid[tup] = self.cur_river_nr
+				self.segment_dict[self.cur_river_nr] = [tup]
+				self.cur_river_nr += 1
+				
 				# self.path[tup] = prev_val[i]*(1-self.delta_w)
+			# else:
+			# 	self.segment_grid[tup] = self.cur_river_nr
+			# 	self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid]
+			# 	self.segment_dict[self.cur_river_nr] 
+			# 	self.cur_river_nr += 1
 
 			# else:
 			# 	pass
@@ -231,12 +246,26 @@ class CA:
 			# self.path[tup] = self.path[tup] + prev_val[i]*(1-self.delta_w)
 		return self.path
 
+	def update_segment(self, coor, new_nr, old_nr):
+		coor_idx = self.segment_dict[old_nr].index(coor)
+		self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
+		self.segment_dict[old_nr]= self.segment_dict[old_nr][:coor_idx]
+		for val in segment_dict[new_nr]:
+			self.segment_grid[val] = new_nr
+		return self.segment_dict
+
+
+
 	def create_path_from_start(self):
 		# print(self.init_water_level/(1-self.delta_w))
 		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level], [(0, self.starting_column)])
+		self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
 		self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
-		self.river_segments[(0, self.starting_column)] = [self.cur_river_nr]
+		self.segment_dict[self.cur_river_nr] = [(0, self.starting_column)]
 		self.cur_river_nr += 1
+		# self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
+		# self.river_segments[(0, self.starting_column)] = [self.cur_river_nr]
+		# self.cur_river_nr += 1
 		# sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column, self.river_coors)
 		
 		# next_cell = sort_location[0]
@@ -266,18 +295,18 @@ class CA:
 					if old_value < sort_values[0] and len(sort_location) > 1:
 						next_cell.append(tuple(sort_location[1]))
 						next_value.append(sort_values[1])
-						self.segment_grid[tuple(sort_location[0])] = self.cur_river_nr
-						self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[item]]
-						self.cur_river_nr += 1
-						self.segment_grid[tuple(sort_location[1])] = self.cur_river_nr
-						self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[item]]
-						self.cur_river_nr += 1
+						# self.segment_grid[tuple(sort_location[0])] = self.cur_river_nr
+						# self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[item]]
+						# self.cur_river_nr += 1
+						# self.segment_grid[tuple(sort_location[1])] = self.cur_river_nr
+						# self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[item]]
+						# self.cur_river_nr += 1
 
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
 
 						temp_ends.add(next_cell[1])
-					else:
-						self.segment_grid[tuple(sort_location[0])] = self.segment_grid[item]
+					# else:
+					# 	self.segment_grid[tuple(sort_location[0])] = self.segment_grid[item]
 						# print('value', next_cell, next_value, self.path[next_cell[0]])
 					self.path = self.get_path(next_water, next_cell, next_value, item)
 					try:
