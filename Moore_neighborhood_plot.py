@@ -152,5 +152,6 @@ for location in locations:
 
 matrix[3, 3] = 2
 
-sns.heatmap(matrix, linewidths=.5)
+sns.heatmap(matrix, linewidths=.5, cmap="YlGnBu_r")
+plt.savefig(f'Moore_neighborhood.png', dpi=300)
 plt.show()
