@@ -2,6 +2,7 @@ import numpy as np
 import random as rd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import pickle as pc
 
 
 class CA:
@@ -20,7 +21,7 @@ class CA:
 
 	def __init__(
 			self, size, slope, mu, gamma, rho, time_limit, rand_lower=0.9999, rand_upper=1.00001,
-			branch_tresh=0.1, init_water=1, delta_water=0.0008
+			branch_tresh=0.1, init_water=1, delta_water=0.0008, viz=False
 	):
 		self.size = size
 		self.slope = slope
@@ -33,7 +34,7 @@ class CA:
 		self.terrain = np.zeros((size, size))
 		self.peat_bog = np.zeros((size, size))
 		self.nutrients = np.zeros((size, size))
-		self.cur_river_nr = 0
+		self.cur_river_nr = 1
 		self.rivers = {}
 
 		self.path = np.zeros((size, size))
@@ -47,151 +48,11 @@ class CA:
 		self.split_dict = {}
 		self.segment_dict = {}
 		self.segment_grid = self.path.copy()
-
-	def moore_neighborhood(self, grid, i, j):
-
-		if i == 0 and j == 0:
-			neighborhood = [
-				grid[i + 1, j + 1],
-				grid[i, j + 1],
-				grid[i + 1, j],
-			]
-			locations = [
-				[i + 1, j + 1],
-				[i, j + 1],
-				[i + 1, j]
-			]
-
-		elif i == 0 and j == (self.size-1):
-			neighborhood = [
-				grid[i, j - 1],
-				grid[i + 1, j - 1],
-				grid[i + 1, j],
-			]
-			locations = [
-				[i, j - 1],
-				[i + 1, j - 1],
-				[i + 1, j],
-			]
-
-		elif i == 0 and 0 < j < (self.size-1):
-			neighborhood = [
-				grid[i, j - 1],
-				grid[i, j + 1],
-				grid[i + 1, j - 1],
-				grid[i + 1, j],
-				grid[i + 1, j + 1],
-			]
-			locations = [
-				[i, j - 1],
-				[i, j + 1],
-				[i + 1, j - 1],
-				[i + 1, j],
-				[i + 1, j + 1],
-			]
-
-		elif i == (self.size-1) and j == 0:
-			neighborhood = [
-				grid[i, j + 1],
-				grid[i - 1, j + 1],
-				grid[i - 1, j],
-			]
-			locations = [
-				[i, j + 1],
-				[i - 1, j + 1],
-				[i - 1, j],
-			]
-
-		elif i == (self.size-1) and j == (self.size-1):
-			neighborhood = [
-				grid[i - 1, j - 1],
-				grid[i, j - 1],
-				grid[i - 1, j],
-			]
-			locations = [
-				[i - 1, j - 1],
-				[i, j - 1],
-				[i - 1, j],
-			]
-
-		elif i == (self.size-1) and 0 < j < (self.size-1):
-			neighborhood = [
-				grid[i, j - 1],
-				grid[i, j + 1],
-				grid[i - 1, j - 1],
-				grid[i - 1, j],
-				grid[i - 1, j + 1],
-			]
-			locations = [
-				[i, j - 1],
-				[i, j + 1],
-				[i - 1, j - 1],
-				[i - 1, j],
-				[i - 1, j + 1],
-			]
-
-		elif 0 < i < (self.size-1) and j == 0:
-			neighborhood = [
-				grid[i - 1, j],
-				grid[i - 1, j + 1],
-				grid[i, j + 1],
-				grid[i + 1, j],
-				grid[i + 1, j + 1],
-			]
-			locations = [
-				[i - 1, j],
-				[i - 1, j + 1],
-				[i, j + 1],
-				[i + 1, j],
-				[i + 1, j + 1],
-			]
-
-		elif 0 < i < (self.size-1) and j == (self.size-1):
-			neighborhood = [
-				grid[i - 1, j],
-				grid[i - 1, j - 1],
-				grid[i, j - 1],
-				grid[i + 1, j],
-				grid[i + 1, j - 1],
-			]
-			locations = [
-				[i - 1, j],
-				[i - 1, j - 1],
-				[i, j - 1],
-				[i + 1, j],
-				[i + 1, j - 1],
-			]
-
-		else:
-			neighborhood = [
-				grid[i - 1, j - 1],
-				grid[i - 1, j],
-				grid[i - 1, j + 1],
-				grid[i, j - 1],
-				grid[i, j + 1],
-				grid[i + 1, j - 1],
-				grid[i + 1, j],
-				grid[i + 1, j + 1],
-			]
-			locations = [
-				[i - 1, j - 1],
-				[i - 1, j],
-				[i - 1, j + 1],
-				[i, j - 1],
-				[i, j + 1],
-				[i + 1, j - 1],
-				[i + 1, j],
-				[i + 1, j + 1],
-			]
-
-		return neighborhood, locations
+		self.viz=viz
+		if self.viz:
+			self.path_list = []
 
 	def initialize_terrain(self):
-		"""
-		slope of 0.05% and randomness,
-
-		NEW: add "hills" to the terrain
-		"""
 		terrain = np.ones((self.size, self.size))
 
 		for i in range(self.size - 1):
@@ -208,13 +69,25 @@ class CA:
 
 		# create hill top
 		hill_coords = [
-			(0, int(self.size/2)),
-			(int(self.size / 4), int(self.size / 2)),
+			(0, int(self.size / 2)),
+			(5, 12),
+			(7, 40),
+			(1, 60),
+			(1, 135),
+			(5, 150),
+			(5, 170),
+			(7, 185),
+			(1, 195),
+			(28, 150),
+			(33, 115),
+			(20, 70),
+			(45, 80),
+			(60, 110),
 		]
-		terrain[hill_coords] = terrain[hill_coords] * 1.0
+		for hill_coord in hill_coords:
+			terrain[hill_coord] = terrain[hill_coord] * 1.04  # rd.uniform(1.01, 1.04)
 
-		# from hill top, create hill
-		for _ in range(1):
+		for _ in range(2):
 
 			for i in range(self.size):
 				for j in range(self.size):
@@ -293,17 +166,24 @@ class CA:
 						self.segment_grid[next_cell[1]] = self.cur_river_nr
 						self.segment_dict[self.cur_river_nr] = [next_cell[1]]
 						self.cur_river_nr += 1
+						self.split_dict[self.segment_grid[item]] = (self.segment_grid[next_cell[1]], self.segment_grid[next_cell[0]])
 					else:
 						temp_ends[(next_cell[0])] = self.segment_grid[item]
 						self.segment_grid[(next_cell[0])] = self.segment_grid[item]
-						self.segment_dict[self.segment_grid[item]].append(self.segment_grid[(next_cell[0])])
+						self.segment_dict[self.segment_grid[item]].append(next_cell[0])
 					self.path = self.get_path(next_water, next_cell, next_value)
-
+			if self.viz:
+				self.path_list.append(self.path.copy())	
 			self.cur_ends = temp_ends.copy()
-			if not self.cur_ends:
-				return self.path, self.segment_grid
+			
 
-		return self.path, self.segment_grid
+			if not self.cur_ends:
+				if self.viz:
+					return self.path_list 
+				return self.path, self.segment_grid, self.split_dict, self.segment_dict
+		if self.viz:
+			return self.path_list 
+		return self.path, self.segment_grid, self.split_dict, self.segment_dict
 
 	def new_water_ratio(self, old, coor_split1, coor_split2):
 		new_l = self.terrain[coor_split1] - self.terrain[old]
@@ -314,18 +194,46 @@ class CA:
 
 
 if __name__ == "__main__":
-	for i in range(1, 31):
+	for i in range(1, 51):
 		size = 200
+		print(i)
 		slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
+		waters = [0.0001, 0.0005, 0.0010, 0.0015]
 		for slope in slopes:
-			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
-			terrain = ca.initialize_terrain()
-			path, segments = ca.create_path_from_start()
-			# np.savetxt(f'tests/test_final.csv', path, delimiter=',')
-			fig, axes = plt.subplots(1, 2)
-			sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
-			sns.heatmap(path, cmap="Blues", ax=axes[1])
-			axes[1].set_title("Path of river")
-			plt.show()
+			for water in waters:
+				ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size, delta_water=water)
+				terrain = ca.initialize_terrain()
+				path, segments, split_dict, segment_dict = ca.create_path_from_start()
+				# np.savetxt(f'tests/test_final.csv', path, delimiter=',')
+				# fig, axes = plt.subplots(1, 2)
+				# sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
+				# sns.heatmap(path, cmap="Blues", ax=axes[1])
+				# axes[1].set_title("Path of river")
+				# plt.show()
+				with open(f'pickles/splits_slope_{slope}_water_{water}_version_{i}.p', 'wb') as handle:
+					pc.dump(split_dict, handle, protocol=pc.HIGHEST_PROTOCOL)
+				with open(f'pickles/segments_slope_{slope}_water_{water}_version_{i}.p', 'wb') as handle:
+					pc.dump(segment_dict, handle, protocol=pc.HIGHEST_PROTOCOL)
+				np.savetxt(f'tests/path_matrix_with_slope_{slope}_water_{water}_version_{i}.csv', path, delimiter=',')
 
-			np.savetxt(f'tests/path_matrix_with_slope_{slope}_version_{i}.csv', path, delimiter=',')
+	# for i in range(1, 2):
+	# 	size = 200
+	# 	# slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
+	# 	slopes = [0.0005]
+	# 	for slope in slopes:
+	# 		ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
+	# 		terrain = ca.initialize_terrain()
+	# 		path, segments = ca.create_path_from_start()
+
+	# 		plt.figure(figsize=(15, 5))
+
+	# 		plt.subplot2grid((1, 2), (0, 0))
+	# 		sns.heatmap(terrain[:, 0:199], cmap="Greens")
+	# 		plt.title(f"Terrain with a slope of {slope*100} %")
+
+	# 		plt.subplot2grid((1, 2), (0, 1))
+	# 		sns.heatmap(path, cmap="Blues")
+	# 		plt.title("River")
+
+	# 		# plt.savefig(f'plots/river_{i}.png', dpi=300)
+	# 		plt.show()
