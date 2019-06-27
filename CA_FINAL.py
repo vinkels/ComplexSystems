@@ -20,7 +20,7 @@ class CA:
 
 	def __init__(
 			self, size, slope, mu, gamma, rho, time_limit, rand_lower=0.9999, rand_upper=1.00001,
-			branch_tresh=0.1, init_water=1, delta_water=0.001
+			branch_tresh=0.1, init_water=1, delta_water=0.0008
 	):
 		self.size = size
 		self.slope = slope
@@ -314,28 +314,18 @@ class CA:
 
 
 if __name__ == "__main__":
-	for i in range(1):
-		size = 100
-		slopes = [0.0001, 0.0002, 0.0005, 0.0008, 0.0005]
+	for i in range(1, 31):
+		size = 200
+		slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
 		for slope in slopes:
 			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
 			terrain = ca.initialize_terrain()
 			path, segments = ca.create_path_from_start()
-			np.savetxt(f'tests/test_final.csv', path, delimiter=',')
+			# np.savetxt(f'tests/test_final.csv', path, delimiter=',')
 			fig, axes = plt.subplots(1, 2)
 			sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
 			sns.heatmap(path, cmap="Blues", ax=axes[1])
 			axes[1].set_title("Path of river")
 			plt.show()
 
-		path_integers = np.zeros((size, size))
-		for i in range(size):
-			for j in range(size):
-				if path[i, j] > 0:
-					path_integers[i, j] = 1
-					print(i, j)
-				else:
-					pass
-
-	path_integers = int(path_integers)
-	np.savetxt(f'tests/path_matrix.csv', path_integers, delimiter=',')
+			np.savetxt(f'tests/path_matrix_with_slope_{slope}_version_{i}.csv', path, delimiter=',')
