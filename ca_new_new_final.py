@@ -231,7 +231,7 @@ class CA:
 			tup = tuple(coor)
 			# if self.path[tup] > self.branch_tresh:
 			# if len(coor_list) > 1:
-			if tup not in self.river_coors:
+			if tup not in self.river_coors and tup not in self.temp_ends:
 				self.river_coors.add(tup)
 				if not self.segment_grid and len(coor_list) == 1:
 					self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
@@ -249,48 +249,39 @@ class CA:
 					self.segment_grid[tup] = self.segment_grid[prev_coor]
 
 			else:
-				self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid[tup]]
-				self.update_segment(tup, self.segment_grid[tup], self.cur_river_nr)
-				self.segment_grid[tup] = self.cur_river_nr
-				self.segment_dict[self.cur_river_nr] = [tup]
-				self.cur_river_nr += 1
+				# self.river_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid[tup]]
+				# self.update_segment(tup, self.segment_grid[tup], self.cur_river_nr)
+				# self.segment_grid[tup] = self.cur_river_nr
+				# self.segment_dict[self.cur_river_nr] = [tup]
+				# self.cur_river_nr += 1
 
 			self.path[tup] = self.path[tup] + float(prev_val[i])*(1-self.delta_w)
 		return self.path
 
-	def update_segment(self, coor, old_nr, new_nr):
-		print(coor)
-		print(self.segment_dict) 
-		print(self.segment_grid)
-		coor_idx = self.segment_dict[old_nr].index(coor)
-		self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
-		self.segment_dict[old_nr]= self.segment_dict[old_nr][:coor_idx]
-		for val in self.segment_dict[new_nr]:
-			self.segment_grid[val] = new_nr
-		return self.segment_dict
+	# def update_segment(self, coor, old_nr, new_nr):
+	# 	print(coor)
+	# 	print(self.segment_dict) 
+	# 	print(self.segment_grid)
+	# 	coor_idx = self.segment_dict[old_nr].index(coor)
+	# 	self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
+	# 	self.segment_dict[old_nr]= self.segment_dict[old_nr][:coor_idx]
+	# 	for val in self.segment_dict[new_nr]:
+	# 		self.segment_grid[val] = new_nr
+	# 	return self.segment_dict
 
 
 
 	def create_path_from_start(self):
 		# print(self.init_water_level/(1-self.delta_w))
+		self.temp_ends = set()
 		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level], [(0, self.starting_column)])
-		# self.river_segments[self.cur_river_nr] = [self.cur_river_nr]
-		# self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
-		# self.segment_dict[self.cur_river_nr] = [(0, self.starting_column)]
-		# self.cur_river_nr += 1
-		# self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
-		# self.river_segments[(0, self.starting_column)] = [self.cur_river_nr]
-		# self.cur_river_nr += 1
-		# sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column, self.river_coors)
-		
-		# next_cell = sort_location[0]
 		self.river_coors.add((0, self.starting_column))
 		cur_ends = set()
 		cur_ends.add((0, self.starting_column))
 		
 
 		for x in range(1, self.time_limit):
-			temp_ends = set()
+			self.temp_ends = set()
 			for i, item in enumerate(cur_ends):
 				print(item)
 				if self.path[item] > self.branch_tresh:
@@ -304,7 +295,7 @@ class CA:
 					# print('zit ik hier vast?',i)
 
 					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
-					temp_ends.add(next_cell[0])
+					self.temp_ends.add(next_cell[0])
 					next_water = [self.path[item]]
 					# print(old_value, sort_values, sort_location)
 					if old_value < sort_values[0] and len(sort_location) > 1:
@@ -312,7 +303,7 @@ class CA:
 						next_value.append(sort_values[1])
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
 
-						temp_ends.add(next_cell[1])
+						self.temp_ends.add(next_cell[1])
 					# else:
 					# 	self.segment_grid[tuple(sort_location[0])] = self.segment_grid[item]
 						# print('value', next_cell, next_value, self.path[next_cell[0]])
@@ -321,7 +312,7 @@ class CA:
 						print(self.path[tuple(sort_location[0])], self.path[tuple(sort_location[1])])
 					except:
 						pass
-			cur_ends = temp_ends.copy()
+			cur_ends = self.temp_ends.copy()
 			# np.savetxt(f'tests/test_{x}.csv', self.path, delimiter=',')
 			if not cur_ends:
 				# print('kom ik hier')

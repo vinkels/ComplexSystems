@@ -32,6 +32,7 @@ class CA:
 		self.segment_dict = {}
 		self.slope = slope
 		self.temp_ends = set()
+		self.merge_dict, self.split_dict = {}, {}
 
 	def moore_neighborhood(self, grid, i, j):
 
@@ -199,17 +200,18 @@ class CA:
 
 			if tup not in self.river_coors:
 				self.river_coors.add(tup)
-				if not self.segment_grid and len(coor_list) == 1:
-					self.excluded_segments[self.cur_river_nr] = [self.cur_river_nr]
-					self.segment_grid[tup] = self.cur_river_nr
-					self.segment_dict[self.cur_river_nr] = [tup]
-					self.cur_river_nr += 1
+				# if not self.segment_grid and len(coor_list) == 1:
+				# 	self.excluded_segments[self.cur_river_nr] = [self.cur_river_nr]
+				# 	self.segment_grid[tup] = self.cur_river_nr
+				# 	self.segment_dict[self.cur_river_nr] = [tup]
+				# 	self.cur_river_nr += 1
 				elif len(coor_list) > 1:
 					# print('splitsing', coor_list, self.cur_river_nr)
 					self.excluded_segments[self.cur_river_nr] = [self.cur_river_nr]
 					self.segment_grid[tup] = self.cur_river_nr
 					self.segment_dict[self.cur_river_nr] = [tup]
 					self.cur_river_nr += 1
+					self.
 				else:
 					self.segment_dict[self.segment_grid[prev_coor]].append(tup)
 					self.segment_grid[tup] = self.segment_grid[prev_coor]

@@ -203,7 +203,7 @@ class CA:
 					self.cur_river_nr += 1
 				elif len(coor_list) > 1:
 					# print('splitsing', coor_list, self.cur_river_nr)
-					self.excluded_segments[self.cur_river_nr] = [self.cur_river_nr]
+					self.excluded_segments[self.cur_river_nr] = [self.cur_river_nr, self.segment_grid[prev_coor]]
 					self.segment_grid[tup] = self.cur_river_nr
 					self.segment_dict[self.cur_river_nr] = [tup]
 					self.cur_river_nr += 1
@@ -232,6 +232,7 @@ class CA:
 		# print(coor)
 		# print(self.segment_dict)
 		# print(self.segment_grid)
+		print('wat ben jij',self.segment_dict[old_nr])
 		coor_idx = self.segment_dict[old_nr].index(coor)
 		self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
 		self.segment_dict[old_nr] = self.segment_dict[old_nr][:coor_idx]
@@ -295,6 +296,8 @@ class CA:
 						next_cell = []
 						next_value = []
 						next_water = []
+
+						print(first_leg, second_leg)
 						for leg in [first_leg, second_leg]:
 							# print("BINNEN DE LOOP")
 							print('leggy', leg, self.path[tuple(leg)])
@@ -334,6 +337,13 @@ class CA:
 			if not cur_ends:
 				return self.path
 			x += 1
+		final_grid = np.zeros((200,200))
+		for key, val in self.segment_grid.items():
+			final_grid[key] = val
+		
+		np.savetxt("tests/crappy.csv", final_grid, delimiter=",")
+
+
 		return self.path
 
 	def new_water_ratio(self, old, coor_split1, coor_split2):
@@ -392,7 +402,7 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=200, time_limit=200, slope=0.0005)
+		ca = CA(size=200, time_limit=200, slope=0.0001)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')

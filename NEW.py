@@ -229,9 +229,13 @@ class CA:
 	
 	def get_location_of_lowest_neighbor(self, grid, coordinates):
 		neighborhood, locations = self.moore_neighborhood(grid, coordinates[0], coordinates[1])
-
+		neighbors, locs = [], []
+		for nb, loc in zip(neighborhood, locations):
+			if (loc not in self.current_ends and loc not in self.old_ends) and loc not in self.temp_ends:
+				neighbors.append(nb)
+				locs.append(loc)
 		try:
-			neighbor, location = (list(t) for t in zip(*sorted(zip(neighborhood, locations))))
+			neighbor, location = (list(t) for t in zip(*sorted(zip(neighbors, locs))))
 		except ValueError:
 			print("GEEN BUREN BESCHIKBAAR")
 			neighbor, location = [], []
@@ -241,19 +245,35 @@ class CA:
 	def create_path_from_start(self):
 		self.path[0, self.starting_column] = self.init_water_level
 		next_cell = (0, self.starting_column)
+		self.current_ends = {(0, self.starting_column)}
+		self.old_ends = self.current_ends.copy()
 
 		previous_lowest_neighbor = []
 		for _ in range(self.time_limit):
-			neighbor, location = self.get_location_of_lowest_neighbor(self.terrain, next_cell)
-			next_cell = location[0]
-			self.path = self.get_path(next_cell)
+			self.temp_ends = set()
+			self.old_ends = self.current_ends.copy()
+			for coor in self.current_ends:
+				neighbor, location = self.get_location_of_lowest_neighbor(self.terrain, coor)
+				next_cell = location[0]
+				self.path = self.get_path(next_cell)
+				self.temp_ends.add(next_cell)
+				if self.terrain[location[0]] > self.terrain[next_cell]:
+					print('fuuuuuuuuck')
+					next_cell = location[1]
+					self.path = self.get_path(next_cell)
+					self.current_ends.add(next_cell)
+					self.temp_ends.add(next_cell)
+				
+				self.path = self.get_path(next_cell)
+				self.old_ends = self.current_ends.copy()
+			self.current_ends = self.temp_ends.copy()
 
 		return self.path
 
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=200, time_limit=100, slope=0.0001)
+		ca = CA(size=300, time_limit=300, slope=0.01)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		# np.savetxt(f'tests/test_final.csv', path, delimiter=',')
