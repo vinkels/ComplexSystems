@@ -3,6 +3,8 @@ import random as rd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pickle as pc
+import copy as cp
+import matplotlib.cm as cm
 
 
 class CA:
@@ -52,6 +54,144 @@ class CA:
 		if self.viz:
 			self.path_list = []
 
+	def moore_neighborhood(self, grid, i, j):
+
+		if i == 0 and j == 0:
+			neighborhood = [
+				grid[i + 1, j + 1],
+				grid[i, j + 1],
+				grid[i + 1, j],
+			]
+			locations = [
+				[i + 1, j + 1],
+				[i, j + 1],
+				[i + 1, j]
+			]
+
+		elif i == 0 and j == (self.size - 1):
+			neighborhood = [
+				grid[i, j - 1],
+				grid[i + 1, j - 1],
+				grid[i + 1, j],
+			]
+			locations = [
+				[i, j - 1],
+				[i + 1, j - 1],
+				[i + 1, j],
+			]
+
+		elif i == 0 and 0 < j < (self.size - 1):
+			neighborhood = [
+				grid[i, j - 1],
+				grid[i, j + 1],
+				grid[i + 1, j - 1],
+				grid[i + 1, j],
+				grid[i + 1, j + 1],
+			]
+			locations = [
+				[i, j - 1],
+				[i, j + 1],
+				[i + 1, j - 1],
+				[i + 1, j],
+				[i + 1, j + 1],
+			]
+
+		elif i == (self.size - 1) and j == 0:
+			neighborhood = [
+				grid[i, j + 1],
+				grid[i - 1, j + 1],
+				grid[i - 1, j],
+			]
+			locations = [
+				[i, j + 1],
+				[i - 1, j + 1],
+				[i - 1, j],
+			]
+
+		elif i == (self.size - 1) and j == (self.size - 1):
+			neighborhood = [
+				grid[i - 1, j - 1],
+				grid[i, j - 1],
+				grid[i - 1, j],
+			]
+			locations = [
+				[i - 1, j - 1],
+				[i, j - 1],
+				[i - 1, j],
+			]
+
+		elif i == (self.size - 1) and 0 < j < (self.size - 1):
+			neighborhood = [
+				grid[i, j - 1],
+				grid[i, j + 1],
+				grid[i - 1, j - 1],
+				grid[i - 1, j],
+				grid[i - 1, j + 1],
+			]
+			locations = [
+				[i, j - 1],
+				[i, j + 1],
+				[i - 1, j - 1],
+				[i - 1, j],
+				[i - 1, j + 1],
+			]
+
+		elif 0 < i < (self.size - 1) and j == 0:
+			neighborhood = [
+				grid[i - 1, j],
+				grid[i - 1, j + 1],
+				grid[i, j + 1],
+				grid[i + 1, j],
+				grid[i + 1, j + 1],
+			]
+			locations = [
+				[i - 1, j],
+				[i - 1, j + 1],
+				[i, j + 1],
+				[i + 1, j],
+				[i + 1, j + 1],
+			]
+
+		elif 0 < i < (self.size - 1) and j == (self.size - 1):
+			neighborhood = [
+				grid[i - 1, j],
+				grid[i - 1, j - 1],
+				grid[i, j - 1],
+				grid[i + 1, j],
+				grid[i + 1, j - 1],
+			]
+			locations = [
+				[i - 1, j],
+				[i - 1, j - 1],
+				[i, j - 1],
+				[i + 1, j],
+				[i + 1, j - 1],
+			]
+
+		else:
+			neighborhood = [
+				grid[i - 1, j - 1],
+				grid[i - 1, j],
+				grid[i - 1, j + 1],
+				grid[i, j - 1],
+				grid[i, j + 1],
+				grid[i + 1, j - 1],
+				grid[i + 1, j],
+				grid[i + 1, j + 1],
+			]
+			locations = [
+				[i - 1, j - 1],
+				[i - 1, j],
+				[i - 1, j + 1],
+				[i, j - 1],
+				[i, j + 1],
+				[i + 1, j - 1],
+				[i + 1, j],
+				[i + 1, j + 1],
+			]
+
+		return neighborhood, locations
+
 	def initialize_terrain(self):
 		terrain = np.ones((self.size, self.size))
 
@@ -85,8 +225,8 @@ class CA:
 			(60, 110),
 		]
 		for hill_coord in hill_coords:
-			terrain[hill_coord] = terrain[hill_coord] * 1.04  # rd.uniform(1.01, 1.04)
-
+			# terrain[hill_coord] = terrain[hill_coord] * 1.04  # rd.uniform(1.01, 1.04)
+			terrain[hill_coord] = terrain[hill_coord]*1
 		for _ in range(2):
 
 			for i in range(self.size):
@@ -194,46 +334,60 @@ class CA:
 
 
 if __name__ == "__main__":
-	for i in range(1, 51):
-		size = 200
-		print(i)
-		slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
-		waters = [0.0001, 0.0005, 0.0010, 0.0015]
-		for slope in slopes:
-			for water in waters:
-				ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size, delta_water=water)
-				terrain = ca.initialize_terrain()
-				path, segments, split_dict, segment_dict = ca.create_path_from_start()
-				# np.savetxt(f'tests/test_final.csv', path, delimiter=',')
-				# fig, axes = plt.subplots(1, 2)
-				# sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
-				# sns.heatmap(path, cmap="Blues", ax=axes[1])
-				# axes[1].set_title("Path of river")
-				# plt.show()
-				with open(f'pickles/splits_slope_{slope}_water_{water}_version_{i}.p', 'wb') as handle:
-					pc.dump(split_dict, handle, protocol=pc.HIGHEST_PROTOCOL)
-				with open(f'pickles/segments_slope_{slope}_water_{water}_version_{i}.p', 'wb') as handle:
-					pc.dump(segment_dict, handle, protocol=pc.HIGHEST_PROTOCOL)
-				np.savetxt(f'tests/path_matrix_with_slope_{slope}_water_{water}_version_{i}.csv', path, delimiter=',')
-
-	# for i in range(1, 2):
+	# for i in range(1, 51):
 	# 	size = 200
-	# 	# slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
-	# 	slopes = [0.0005]
+	# 	print(i)
+	# 	slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
+	# 	waters = [0.0001, 0.0005, 0.0010, 0.0015]
 	# 	for slope in slopes:
-	# 		ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
-	# 		terrain = ca.initialize_terrain()
-	# 		path, segments = ca.create_path_from_start()
+	# 		for water in waters:
+	# 			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size, delta_water=water)
+	# 			terrain = ca.initialize_terrain()
+	# 			path, segments, split_dict, segment_dict = ca.create_path_from_start()
+	# 			# np.savetxt(f'tests/test_final.csv', path, delimiter=',')
+	# 			# fig, axes = plt.subplots(1, 2)
+	# 			# sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
+	# 			# sns.heatmap(path, cmap="Blues", ax=axes[1])
+	# 			# axes[1].set_title("Path of river")
+	# 			# plt.show()
+	# 			with open(f'pickles/splits_slope_{slope}_water_{water}_version_{i}.p', 'wb') as handle:
+	# 				pc.dump(split_dict, handle, protocol=pc.HIGHEST_PROTOCOL)
+	# 			with open(f'pickles/segments_slope_{slope}_water_{water}_version_{i}.p', 'wb') as handle:
+	# 				pc.dump(segment_dict, handle, protocol=pc.HIGHEST_PROTOCOL)
+	# 			np.savetxt(f'tests/path_matrix_with_slope_{slope}_water_{water}_version_{i}.csv', path, delimiter=',')
 
-	# 		plt.figure(figsize=(15, 5))
+	for i in range(1, 2):
+		size = 200
+		# slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
+		slopes = [0.0005]
+		for slope in slopes:
+			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
+			terrain = ca.initialize_terrain()
+			path, segments,_,_ = ca.create_path_from_start()
 
-	# 		plt.subplot2grid((1, 2), (0, 0))
-	# 		sns.heatmap(terrain[:, 0:199], cmap="Greens")
-	# 		plt.title(f"Terrain with a slope of {slope*100} %")
+			# plt.figure(figsize=(15, 5))
 
-	# 		plt.subplot2grid((1, 2), (0, 1))
-	# 		sns.heatmap(path, cmap="Blues")
-	# 		plt.title("River")
+			# plt.subplot2grid((1, 2), (0, 0))
+			# sns.heatmap(terrain[:, 0:199], cmap="Greens")
+			# plt.title(f"Terrain with a slope of {slope*100} %")
 
-	# 		# plt.savefig(f'plots/river_{i}.png', dpi=300)
-	# 		plt.show()
+			# my_cmap = cp.copy(cm.get_cmap('Blues'))
+			# my_cmap.set_under(alpha=0.001)
+			# # plt.subplot2grid((1, 2), (0, 1))
+			# sns.heatmap(path, cmap=my_cmap)
+			# plt.title("River")
+
+			# # plt.savefig(f'plots/river_{i}.png', dpi=300)
+			# plt.show()
+
+			# Generate some data...
+			# gray_data = np.arange(10000).reshape(100, 100)
+
+			# masked_data = np.random.random((100,100))
+			masked_data = np.ma.masked_where(path < 0.01, path)
+			print(np.min(path), np.max(path))
+			# Overlay the two images
+			fig, ax = plt.subplots()
+			ax.imshow(terrain[:, 0:199], cmap='Greens')
+			ax.imshow(masked_data, cmap='Blues',vmin=-1,vmax=1, interpolation='none')
+			plt.show()
