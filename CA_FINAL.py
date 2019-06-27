@@ -208,7 +208,7 @@ class CA:
 			(0, int(self.size/2)),
 			(int(self.size / 4), int(self.size / 2)),
 		]
-		terrain[hill_coords] = terrain[hill_coords] * 1.05
+		terrain[hill_coords] = terrain[hill_coords] * 1.0
 
 		# from hill top, create hill
 		for _ in range(1):
@@ -302,8 +302,8 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		size = 200
-		slopes = [0.0001, 0.0002, 0.0005, 0.0008, 0.001]
+		size = 100
+		slopes = [0.0001, 0.0002, 0.0005, 0.0008, 0.0005]
 		for slope in slopes:
 			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
 			terrain = ca.initialize_terrain()
@@ -312,6 +312,18 @@ if __name__ == "__main__":
 			fig, axes = plt.subplots(1, 2)
 			sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
 			sns.heatmap(path, cmap="Blues", ax=axes[1])
-			axes[1].set_title("Path of river without bifurcation")
+			axes[1].set_title("Path of river")
 			# plt.savefig(f'plots/river_{i}.png', dpi=300)
 			plt.show()
+
+		path_integers = np.zeros((size, size))
+		for i in range(size):
+			for j in range(size):
+				if path[i, j] > 0:
+					path_integers[i, j] = 1
+					print(i, j)
+				else:
+					pass
+
+	path_integers = int(path_integers)
+	np.savetxt(f'tests/path_matrix.csv', path_integers, delimiter=',')
