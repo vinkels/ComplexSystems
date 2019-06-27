@@ -183,7 +183,6 @@ class CA:
 
 		return neighborhood, locations
 
-
 	def initialize_terrain(self):
 		"""
 		slope of 0.05% and randomness,
@@ -191,6 +190,9 @@ class CA:
 		NEW: add "hills" to the terrain
 		"""
 		terrain = np.ones((self.size, self.size))
+
+		for i in range(self.size - 1):
+			terrain[i + 1] = terrain[i] * (1 - self.slope)
 
 		for i in range(self.size):
 			for j in range(self.size):
@@ -201,20 +203,31 @@ class CA:
 					perturb = rd.uniform(self.rand_lower, self.rand_upper)
 				terrain[i, j] = np.mean(neighbors) * perturb
 
-		for i in range(self.size):
-			terrain[i] = terrain[i] * (1 - self.slope * i)
-
 		# create hill top
-		hill_coords = (int(self.size/3), int(self.size/2))
-		terrain[hill_coords] = terrain[hill_coords] * 2
+		hill_coords = [
+			(0, int(self.size/2)),
+			(int(self.size / 4), int(self.size / 2)),
+		]
+		terrain[hill_coords] = terrain[hill_coords] * 1.05
 
 		# from hill top, create hill
-		for i in range(self.size):
-			for j in range(self.size):
-				neighbors = self.moore_neighborhood(terrain, i, j)[0]
-				for neighbor in neighbors:
-					if abs(terrain[i, j] - neighbor)/neighbor > 0.01:
-						terrain[i, j] = neighbor * rd.uniform(0.99, 0.9999)
+		for _ in range(1):
+
+			for i in range(self.size):
+				for j in range(self.size):
+					neighborhood, locations = self.moore_neighborhood(terrain, i, j)
+					for n, neighbor in enumerate(neighborhood):
+						location = (locations[n][0], locations[n][1])
+						if ((terrain[i, j] - neighbor) / neighbor) > 0.01:
+							terrain[location] = terrain[i, j] * rd.uniform(0.995, 0.999)
+
+			for i in range(self.size - 1, 0, -1):
+				for j in range(self.size - 1, 0, -1):
+					neighborhood, locations = self.moore_neighborhood(terrain, i, j)
+					for n, neighbor in enumerate(neighborhood):
+						location = (locations[n][0], locations[n][1])
+						if ((terrain[i, j] - neighbor) / neighbor) > 0.01:
+							terrain[location] = terrain[i, j] * rd.uniform(0.995, 0.999)
 
 		self.terrain = terrain
 		return self.terrain
@@ -237,24 +250,16 @@ class CA:
 	def get_path(self, prev_val, coor_list, value_list):
 		for i, coor in enumerate(coor_list):
 			tup = tuple(coor)
-			# if self.path[tup] > self.branch_tresh:
 			if tup not in self.river_coors:
 				self.river_coors.add(tup)
-				# self.path[tup] = prev_val[i]*(1-self.delta_w)
-
 			else:
 				pass
-				# print('jup', self.path[tup], value_list[i])
 			self.path[tup] = self.path[tup] + float(prev_val[i])*(1-self.delta_w)
-			# self.path[tup] = self.path[tup] + prev_val[i]*(1-self.delta_w)
 		return self.path
 
 	def create_path_from_start(self):
-		# print(self.init_water_level/(1-self.delta_w))
 		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level])
-		# sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, 0, self.starting_column, self.river_coors)
-		
-		# next_cell = sort_location[0]
+
 		self.river_coors.add((0, self.starting_column))
 		cur_ends = set()
 		cur_ends.add((0, self.starting_column))
@@ -262,43 +267,28 @@ class CA:
 		for x in range(1, self.time_limit):
 			temp_ends = set()
 			for i, item in enumerate(cur_ends):
-				# print(item)
 				if self.path[item] > self.branch_tresh:
-					# print('kom ik hier???')
 					old_value = self.terrain[item]
 					sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1], temp_ends)
 					if not sort_values:
-						# print('hier eerst')
 						continue
-					# print(old_value, sort_values[0])
-					# print('zit ik hier vast?',i)
 					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
 					temp_ends.add(next_cell[0])
 					next_water = [self.path[item]]
-					# print(old_value, sort_values, sort_location)
 					if old_value < sort_values[0] and len(sort_location) > 1:
-						print('haaaaai')
-						# print(sort_location)
-						
 						next_cell.append(tuple(sort_location[1]))
 						next_value.append(sort_values[1])
-
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
-
 						temp_ends.add(next_cell[1])
 						# print('value', next_cell, next_value, self.path[next_cell[0]])
 					self.path = self.get_path(next_water, next_cell, next_value)
-					try:
-						print(self.path[tuple(sort_location[0])], self.path[tuple(sort_location[1])])
-					except:
-						pass
+					# try:
+					# 	print(self.path[tuple(sort_location[0])], self.path[tuple(sort_location[1])])
+					# except:
+					# 	pass
 			cur_ends = temp_ends.copy()
-			# np.savetxt(f'tests/test_{x}.csv', self.path, delimiter=',')
 			if not cur_ends:
-				# print('kom ik hier')
 				return self.path
-			
-			# print('---------------------------------------------------------')
 
 		return self.path
 
@@ -309,49 +299,19 @@ class CA:
 		r = new_r/(new_l + new_r) * self.path[old]
 		return [l, r]
 
-	def create_path_from_bifurcation(self):
-		""" WIP """
-		return self.path
-
-	def calculate_flow(self):
-
-		pass
-
-	def calculate_nutrient_distribution(self):
-
-		for i in range(self.size):
-			for j in range(self.size):
-				if self.water[i, j] > 0:
-					self.nutrients[i, j] = 1
-				else:
-					neighborhood = self.moore_neighborhood(self.nutrients[i, j])
-					max_value = max(neighborhood)
-					self.nutrients[i, j] = self.gamma * max_value
-
-		return self.nutrients
-
-	def calculate_peat_growth(self):
-
-		for i in range(self.size):
-			for j in range(self.size):
-				if self.water[i, j] > 0:
-					self.peat_bog[i, j] = self.mu * self.nutrients[i, j]
-				else:
-					self.peat_bog[i, j] = self.rho * self.nutrients[i, j]
-
-		return self.peat_bog
-
 
 if __name__ == "__main__":
 	for i in range(1):
-		for slope in [0.0001, 0.0002, 0.0005, 0.001]:
-			ca = CA(size=100, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=500)
+		size = 200
+		slopes = [0.0001, 0.0002, 0.0005, 0.0008, 0.001]
+		for slope in slopes:
+			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
 			terrain = ca.initialize_terrain()
 			path = ca.create_path_from_start()
 			np.savetxt(f'tests/test_final.csv', path, delimiter=',')
 			fig, axes = plt.subplots(1, 2)
-			sns.heatmap(terrain[:, 0:99], cmap="Greens", ax=axes[0])
+			sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
 			sns.heatmap(path, cmap="Blues", ax=axes[1])
-			# axes[1].set_title("Path of river without bifurcation")
+			axes[1].set_title("Path of river without bifurcation")
 			# plt.savefig(f'plots/river_{i}.png', dpi=300)
 			plt.show()
