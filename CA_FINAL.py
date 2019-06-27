@@ -44,6 +44,9 @@ class CA:
 		self.rand_lower = rand_lower
 		self.rand_upper = rand_upper
 		self.river_coors = set()
+		self.split_dict = {}
+		self.segment_dict = {}
+		self.segment_grid = self.path.copy()
 
 	def moore_neighborhood(self, grid, i, j):
 
@@ -237,7 +240,6 @@ class CA:
 		neighborhood0, neighborhood1 = [], []
 		for i, val in enumerate(neighborhood[1]):
 			if tuple(val) not in self.river_coors:
-				# and tuple(val) not in temp_ends
 				neighborhood0.append(neighborhood[0][i])
 				neighborhood1.append(val)
 		try:
@@ -258,39 +260,57 @@ class CA:
 		return self.path
 
 	def create_path_from_start(self):
+		
 		self.path = self.get_path([self.init_water_level/(1-self.delta_w)],[(0, self.starting_column)], [self.init_water_level])
-
 		self.river_coors.add((0, self.starting_column))
-		cur_ends = set()
-		cur_ends.add((0, self.starting_column))
+		self.cur_ends = {}
+		self.cur_ends[(0, self.starting_column)] = self.cur_river_nr
+		self.segment_dict = {self.cur_river_nr:[(0, self.starting_column)]}
+		self.segment_grid[(0, self.starting_column)] = self.cur_river_nr
+		self.cur_river_nr += 1
 
 		for x in range(1, self.time_limit):
-			temp_ends = set()
-			for i, item in enumerate(cur_ends):
+			temp_ends = {}
+			for item, val in self.cur_ends.items():
 				if self.path[item] > self.branch_tresh:
+
 					old_value = self.terrain[item]
 					sort_values, sort_location = self.get_location_of_lowest_neighbor(self.terrain, item[0], item[1], temp_ends)
 					if not sort_values:
 						continue
+					
 					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
-					temp_ends.add(next_cell[0])
+					
+					# temp_ends.add(next_cell[0])
 					next_water = [self.path[item]]
 					if old_value < sort_values[0] and len(sort_location) > 1:
 						next_cell.append(tuple(sort_location[1]))
 						next_value.append(sort_values[1])
 						next_water = self.new_water_ratio(item, tuple(sort_location[0]), tuple(sort_location[1]))
-						temp_ends.add(next_cell[1])
+						temp_ends[next_cell[0]] = self.cur_river_nr
+						self.segment_grid[next_cell[0]] = self.cur_river_nr
+						self.segment_dict[self.cur_river_nr] = [next_cell[0]]
+						self.cur_river_nr += 1
+						temp_ends[next_cell[1]] = self.cur_river_nr
+						self.segment_grid[next_cell[1]] = self.cur_river_nr
+						self.segment_dict[self.cur_river_nr] = [next_cell[1]]
+						self.cur_river_nr += 1
+					else:
+						temp_ends[(next_cell[0])] = self.segment_grid[item]
+						self.segment_grid[(next_cell[0])] = self.segment_grid[item]
+						self.segment_dict[self.segment_grid[item]].append(self.segment_grid[(next_cell[0])])
+						# temp_ends.add(next_cell[1])
 						# print('value', next_cell, next_value, self.path[next_cell[0]])
 					self.path = self.get_path(next_water, next_cell, next_value)
 					# try:
 					# 	print(self.path[tuple(sort_location[0])], self.path[tuple(sort_location[1])])
 					# except:
 					# 	pass
-			cur_ends = temp_ends.copy()
-			if not cur_ends:
-				return self.path
+			self.cur_ends = temp_ends.copy()
+			if not self.cur_ends:
+				return self.path, self.segment_grid
 
-		return self.path
+		return self.path, self.segment_grid
 
 	def new_water_ratio(self, old, coor_split1, coor_split2):
 		new_l = self.terrain[coor_split1] - self.terrain[old]
@@ -307,11 +327,14 @@ if __name__ == "__main__":
 		for slope in slopes:
 			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
 			terrain = ca.initialize_terrain()
-			path = ca.create_path_from_start()
+			path, segments = ca.create_path_from_start()
 			np.savetxt(f'tests/test_final.csv', path, delimiter=',')
 			fig, axes = plt.subplots(1, 2)
 			sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
 			sns.heatmap(path, cmap="Blues", ax=axes[1])
 			axes[1].set_title("Path of river without bifurcation")
 			# plt.savefig(f'plots/river_{i}.png', dpi=300)
+			plt.show()
+			plt.figure()
+			sns.heatmap(segments, cmap="Reds")
 			plt.show()
