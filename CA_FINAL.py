@@ -211,7 +211,7 @@ class CA:
 			(0, int(self.size/2)),
 			(int(self.size / 4), int(self.size / 2)),
 		]
-		terrain[hill_coords] = terrain[hill_coords] * 1.05
+		terrain[hill_coords] = terrain[hill_coords] * 1.0
 
 		# from hill top, create hill
 		for _ in range(1):
@@ -280,8 +280,6 @@ class CA:
 						continue
 					
 					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
-					
-					# temp_ends.add(next_cell[0])
 					next_water = [self.path[item]]
 					if old_value < sort_values[0] and len(sort_location) > 1:
 						next_cell.append(tuple(sort_location[1]))
@@ -299,13 +297,8 @@ class CA:
 						temp_ends[(next_cell[0])] = self.segment_grid[item]
 						self.segment_grid[(next_cell[0])] = self.segment_grid[item]
 						self.segment_dict[self.segment_grid[item]].append(self.segment_grid[(next_cell[0])])
-						# temp_ends.add(next_cell[1])
-						# print('value', next_cell, next_value, self.path[next_cell[0]])
 					self.path = self.get_path(next_water, next_cell, next_value)
-					# try:
-					# 	print(self.path[tuple(sort_location[0])], self.path[tuple(sort_location[1])])
-					# except:
-					# 	pass
+
 			self.cur_ends = temp_ends.copy()
 			if not self.cur_ends:
 				return self.path, self.segment_grid
@@ -322,8 +315,8 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		size = 200
-		slopes = [0.0001, 0.0002, 0.0005, 0.0008, 0.001]
+		size = 100
+		slopes = [0.0001, 0.0002, 0.0005, 0.0008, 0.0005]
 		for slope in slopes:
 			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
 			terrain = ca.initialize_terrain()
@@ -332,9 +325,17 @@ if __name__ == "__main__":
 			fig, axes = plt.subplots(1, 2)
 			sns.heatmap(terrain[:, 0:size-1], cmap="Greens", ax=axes[0])
 			sns.heatmap(path, cmap="Blues", ax=axes[1])
-			axes[1].set_title("Path of river without bifurcation")
-			# plt.savefig(f'plots/river_{i}.png', dpi=300)
+			axes[1].set_title("Path of river")
 			plt.show()
-			plt.figure()
-			sns.heatmap(segments, cmap="Reds")
-			plt.show()
+
+		path_integers = np.zeros((size, size))
+		for i in range(size):
+			for j in range(size):
+				if path[i, j] > 0:
+					path_integers[i, j] = 1
+					print(i, j)
+				else:
+					pass
+
+	path_integers = int(path_integers)
+	np.savetxt(f'tests/path_matrix.csv', path_integers, delimiter=',')
