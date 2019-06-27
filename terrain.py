@@ -53,3 +53,26 @@ def initialize_terrain(self):
 
 	self.terrain = terrain
 	return self.terrain
+
+if __name__ == "__main__":
+	for i in range(1, 2):
+		size = 200
+		# slopes = [0.0001, 0.0002, 0.0004, 0.0006, 0.0008, 0.001]
+		slopes = [0.0005]
+		for slope in slopes:
+			ca = CA(size=size, slope=slope, mu=0.0004, gamma=0.0002, rho=0.02, time_limit=size)
+			terrain = ca.initialize_terrain()
+			path, segments = ca.create_path_from_start()
+
+			plt.figure(figsize=(15, 5))
+
+			plt.subplot2grid((1, 2), (0, 0))
+			sns.heatmap(terrain[:, 0:199], cmap="Greens")
+			plt.title(f"Terrain with a slope of {slope*100} %")
+
+			plt.subplot2grid((1, 2), (0, 1))
+			sns.heatmap(path, cmap="Blues")
+			plt.title("River")
+
+			# plt.savefig(f'plots/river_{i}.png', dpi=300)
+			plt.show()
