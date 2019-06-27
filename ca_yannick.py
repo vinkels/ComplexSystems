@@ -218,6 +218,8 @@ class CA:
 				self.excluded_segments[self.cur_river_nr] = [
 					self.cur_river_nr, self.segment_grid[prev_coor], self.segment_grid[tup]
 				]
+				print('path', self.segment_grid[tup])
+				print('path', self.path[tup])
 				self.update_segment(tup, self.segment_grid[tup], self.cur_river_nr)
 				self.segment_grid[tup] = self.cur_river_nr
 				self.segment_dict[self.cur_river_nr] = [tup]
@@ -227,7 +229,8 @@ class CA:
 		return self.path
 
 	def update_segment(self, coor, old_nr, new_nr):
-
+		print(self.segment_dict[old_nr])
+		print('coor', coor)
 		coor_idx = self.segment_dict[old_nr].index(coor)
 		self.segment_dict[new_nr] = self.segment_dict[old_nr][coor_idx:]
 		self.segment_dict[old_nr] = self.segment_dict[old_nr][:coor_idx]
@@ -263,7 +266,7 @@ class CA:
 					next_cell, next_value = [tuple(sort_location[0])], [sort_values[0]]
 					self.temp_ends.add(next_cell[0])
 					next_water = [self.path[item]]
-					
+
 					if old_value < sort_values[0] and len(sort_location) > 1:
 						next_cell.append(tuple(sort_location[1]))
 						next_value.append(sort_values[1])
@@ -344,7 +347,7 @@ class CA:
 
 if __name__ == "__main__":
 	for i in range(1):
-		ca = CA(size=500, time_limit=500, slope=0.0005)
+		ca = CA(size=200, time_limit=200, slope=0.0005)
 		terrain = ca.initialize_terrain()
 		path = ca.create_path_from_start()
 		np.savetxt(f'tests/test_final.csv', path, delimiter=',')
