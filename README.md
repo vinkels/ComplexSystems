@@ -1,43 +1,35 @@
-# ComplexSystems
-jeuj
+# Complex Systems Simulation for River networks
 
-https://networkx.github.io
-https://github.com/Riverscapes/NetworkProfiler
+Hier staat een korte beschrijving van het probleem evt. met plaatje.
 
-<!-- #research subjects
-- statistics of model with different connectivity (pearson correlation) thresholds
-- network type (small world, scale free)
-- criticality analysis
-- simulation of annual values
-- within year analysis
-- compare networks from 'safe' and 'drowning' areas 
-- comparing timeserie network methods (pearson correlation vs horizontal visbility graph)
+## Getting Started
 
+### Prerequisites
 
-# Research idea 
-pattern over days as parameter for model simulation
-- verschillende patronen in waterpeilen in jaar en kijken hoe dit het model beinvloed
-    -> meerdere jaren data set maken? -->
+All code is written and tested in [Python3.7.3](https://www.python.org/downloads/).
+All packages and their used versions needed to run the scripts can be found in requirements.txt. The requirements file can be installed by using the following statement in the terminal;
 
+```
+pip install -r requirements.txt
+```
 
-# NEW PLAN
+### Structuur (Structure)
 
-- fractal/cellular automata of river with different fractal dimensions 
-    - resistance law for stromingssnelheid (diameter riviervertakking)
-    - hoe verspreid iets over een netwerk ( snelheid, afstand) -> simulatie
+Alle Python scripts staan in de folder Code. In de map Data zitten alle input waardes en in de map resultaten worden alle resultaten opgeslagen door de code.
 
-## extra
-    - halfwaardetijd -> afgifte over gebied (concentratie van stoffen)
-    - getijden met verschillende stroomsnelheden
-    - rivers that come together
+### Test (Testing)
 
-# VERVOLG NEW PLAN
-- verdeling voor vertakking van twee stromen
-- rivier maken
-- stroomsnelheden verdeling over vertakking
-- stopcriteria/ threshold
+Om de code te draaien met de standaardconfiguratie (bv. brute-force en voorbeeld.csv) gebruik de instructie:
 
+```
+python main.py
+```
 
-#splitsing
-verschil tussen current node -> delen door het geheel
-- stoppen als steiging is
+## Auteurs (Authors)
+
+* Ik
+
+## Dankwoord (Acknowledgments)
+
+* StackOverflow
+* minor programmeren van de UvA
