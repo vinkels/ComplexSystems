@@ -18,12 +18,17 @@ def read_in_data(path='data/data_complex_systems/pickles/'):
             count += 1
             name_split = 'splits_slope_' + str(s) +'_version_' + str(i) +'.p'
             name_segm = 'segments_slope_' + str(s) +'_version_' + str(i) +'.p'
-            with open(path+name_split, 'rb') as f:
-                data_split = pkl.load(f)
-                dict_of_split[str(count)] = data_split
-            with open(path+name_segm, 'rb') as g:
-                data_segment = pkl.load(g)
-                dict_of_segment[str(count)] = data_segment
+
+            f = open(path+name_split, 'rb')
+            data_split = pkl.load(f)
+            dict_of_split[str(count)] = data_split
+
+            g  = open(path+name_segm, 'rb')
+            data_segment = pkl.load(g)
+            dict_of_segment[str(count)] = data_segment
+            f.close()
+            g.close()
+
     return dict_of_split, dict_of_segment
 
 
