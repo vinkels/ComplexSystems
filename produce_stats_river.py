@@ -5,41 +5,64 @@ import networkx as nx
 import heapq
 from collections import OrderedDict
 
-def read_in_data(path):
-    pass
+def read_in_data(path='data/data_complex_systems/pickles/'):
+
+    slopes = [0.0001,0.0002,0.0004,0.0006,0.0008,0.001]
+    dict_of_split= {}
+    dict_of_segment = {}
+    for i in range(1,31):
+        count = 0
+        for s in slopes:
+            count += 1
+            name_split = ('splits_slope_' + str(s) +'version' + str(i) +'.p')
+            name_segm = ('segements_slope_' + str(s) +'version' + str(i) +'.p')
+            with open(path+name_split, 'rb') as f:
+                data_split = pkl.load(f)
+                dict_of_split[str(count)] = data_split
+            with open(path+name_segm, 'rb') as g:
+                data_segment = pkl.load(g)
+                dict_of_segment[str(count)] = data_segment
+    return dict_of_split, dict_of_segment
+
+
 
 data_split = pkl.load(open('data/data_complex_systems/pickles/splits_slope_0.0001_version_1.p', 'rb'))
 
 data_segment = pkl.load(open('data/data_complex_systems/pickles/segments_slope_0.0001_version_1.p', 'rb'))
 
-def process_data(split, segment):
-    pass
+def process_data(split, segment, labelling= False):
 
-for k, v in data_segment.items():
-    data_segment[k] = len(v)
-split_dict = {}
-for k, v in data_split.items():
-    split_dict[int(k)] = (int(v[0]), int(v[1]))
+    if labelling:
+        labels = OrderedDict()
+        values = range(len(segment))
+        for e, i in enumerate(values):
+            labels[str(e)] = i
+        return labels
 
-labels = OrderedDict()
-values = range(len(data_segment))
-for e, i in enumerate(values):
-    labels[str(e)] = i
+    for k, v in segment.items():
+        segment[k] = len(v)
+    split_dict = {}
+    for k, v in split.items():
+        split_dict[int(k)] = (int(v[0]), int(v[1]))
 
-def visualize_split_network(split):
-    pass
-g= nx.DiGraph(split_dict)
-edgie = g.edges()
-for k, v in split_dict.items():
-    for ed in edgie:
-        if k == ed[0]:
-            g[k][ed[1]]['weights'] = data_segment[k] * 1/len(data_segment)
+    return split_dict, segment
 
+def create_network(split, segment):
 
-# plt.figure()
-# nx.draw(g, with_labels=labels)
-# plt.savefig('test.png', dpi=300)
-# plt.show()
+    g= nx.DiGraph(split)
+    edgie = g.edges()
+    for k, v in split_dict.items():
+        for ed in edgie:
+            if k == ed[0]:
+                g[k][ed[1]]['weights'] = data_segment[k] * 1/len(segment)
+    return g
+
+def visualise_network(graph, it, labels, save =False):
+    plt.figure()
+    nx.draw(graph, with_labels=labels)
+    if save:
+        plt.savefig('network_'+str(it)+'.png', dpi=300)
+    plt.show()
 
 
 def calc_order_array(D):
