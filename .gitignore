@@ -136,4 +136,5 @@ data/
 animations/
 pickles/
 tests/
+plots/
 .vscode/
