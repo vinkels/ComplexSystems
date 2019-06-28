@@ -13,7 +13,8 @@ All packages and their used versions needed to run the scripts can be found in r
 pip install -r requirements.txt
 ```
 
-### Structuur (Structure)
+### Structure
+
 
 Alle Python scripts staan in de folder Code. In de map Data zitten alle input waardes en in de map resultaten worden alle resultaten opgeslagen door de code.
 
@@ -31,5 +32,6 @@ python main.py
 
 ## Dankwoord (Acknowledgments)
 
-* StackOverflow
-* minor programmeren van de UvA
+* Google
+*
+* Rick Quax
