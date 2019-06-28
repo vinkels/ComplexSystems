@@ -4,6 +4,8 @@ import pickle as pkl
 import networkx as nx
 import heapq
 from collections import OrderedDict
+import os
+
 
 def read_in_data(path='data/data_complex_systems/pickles/'):
 
@@ -14,8 +16,8 @@ def read_in_data(path='data/data_complex_systems/pickles/'):
         count = 0
         for s in slopes:
             count += 1
-            name_split = ('splits_slope_' + str(s) +'version' + str(i) +'.p')
-            name_segm = ('segements_slope_' + str(s) +'version' + str(i) +'.p')
+            name_split = 'splits_slope_' + str(s) +'_version_' + str(i) +'.p'
+            name_segm = 'segments_slope_' + str(s) +'_version_' + str(i) +'.p'
             with open(path+name_split, 'rb') as f:
                 data_split = pkl.load(f)
                 dict_of_split[str(count)] = data_split
@@ -26,9 +28,9 @@ def read_in_data(path='data/data_complex_systems/pickles/'):
 
 
 
-data_split = pkl.load(open('data/data_complex_systems/pickles/splits_slope_0.0001_version_1.p', 'rb'))
+# data_split = pkl.load(open('data/data_complex_systems/pickles/splits_slope_0.0001_version_1.p', 'rb'))
 
-data_segment = pkl.load(open('data/data_complex_systems/pickles/segments_slope_0.0001_version_1.p', 'rb'))
+# data_segment = pkl.load(open('data/data_complex_systems/pickles/segments_slope_0.0001_version_1.p', 'rb'))
 
 def process_data(split, segment, labelling= False):
 
@@ -54,7 +56,7 @@ def create_network(split, segment):
     for k, v in split_dict.items():
         for ed in edgie:
             if k == ed[0]:
-                g[k][ed[1]]['weights'] = data_segment[k] * 1/len(segment)
+                g[k][ed[1]]['weights'] = segment[k] * 1/len(segment)
     return g
 
 def visualise_network(graph, it, labels, save =False):
@@ -105,8 +107,6 @@ def calc_bifcation_ratio(order_arr):
             R_b[i] = sum(order_arr == i + 1)/sum(order_arr == i + 2)
     return R_b
 
-
-
 def calc_len_ratio(order_arr, segm_dict):
 
     length_node_list = segm_dict.values()
@@ -129,28 +129,22 @@ def calc_len_ratio(order_arr, segm_dict):
     return R_l
 
 
-
 def calc_fractal_dim(ratio_bifcation, ratio_length):
     return sum(np.log(ratio_bifcation)/np.log(ratio_length))
 
-o_array = calc_order_array(g)
-r_b = calc_bifcation_ratio(o_array)
-r_l = calc_len_ratio(o_array, data_segment)
-print(calc_fractal_dim(r_b, r_l))
+# o_array = calc_order_array(g)
+# r_b = calc_bifcation_ratio(o_array)
+# r_l = calc_len_ratio(o_array, data_segment)
+# print(calc_fractal_dim(r_b, r_l))
 
-# slopes = [0.0001,0.0002,0.0004,0.0006,0.0008,0.001]
-# rb=np.zeros(30,3)
-# for i in range(1,31):
-#     count = 0
-#     for s in slopes:
-#         count += 1
-#         name = ('splits_slope_' + str(s) +'version' + str(i) +'.p')
-#         data_split = pkl.load(open(name, 'rb'))
-#         Graph = nx.DiGraph(data_split)
-#         ##rb[count] = calc_Rb(Graph)[0]
+
 
 def stats_bifurcation_ratio():
-    pass
+    data_split, _ = read_in_data()
+    bif_list = []
+    for e, i in enumerate(data_split):
+        print(e)
+
 
 def stats_path_length_ratio():
     pass
@@ -159,3 +153,5 @@ def stats_fractal_dim():
     pass
 
 
+if __name__ == "__main__":
+    stats_bifurcation_ratio()
