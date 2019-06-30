@@ -1,6 +1,6 @@
 # Complex Systems Simulation for River networks
 
-Hier staat een korte beschrijving van het probleem evt. met plaatje.
+Code and presentation slides of Group 3
 
 ## Getting Started
 
@@ -15,23 +15,19 @@ pip install -r requirements.txt
 
 ### Structure
 
+The code used to simulate rivers and animate the results can be found in the files CA_FINAL.py and animate.py. Making grading easier, the same code is combined in a notebook. This notebook is called CSS_group_3.ipynb. 
 
-Alle Python scripts staan in de folder Code. In de map Data zitten alle input waardes en in de map resultaten worden alle resultaten opgeslagen door de code.
+The emerged networks are analysed using a seperate notebook. This notebook is called network_analysis_group_3.ipynb
 
-### Test (Testing)
+## Authors
 
-Om de code te draaien met de standaardconfiguratie (bv. brute-force en voorbeeld.csv) gebruik de instructie:
+* Yannick Vinkesteijn
+* Dennis Knol 
+* Ea Werner 
+* Jier Nzuanzu
+ 
 
-```
-python main.py
-```
+## Acknowledgments
 
-## Auteurs (Authors)
-
-* Ik
-
-## Dankwoord (Acknowledgments)
-
-* Google
-*
 * Rick Quax
+* Casper van Elteren
